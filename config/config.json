@@ -1,25 +1,23 @@
 {
   "site": {
-    "title": "社内ドキュメントサイト",
-    "description": "社内手順書・仕様書の一元管理サイト",
-    "baseUrl": ""
+    "title": "社内手順書・仕様書",
+    "description": "社内向け技術文書管理システム"
   },
   "pages": [
     {
+      "path": "docs/setup.md",
+      "title": "環境セットアップ手順",
+      "category": "環境構築"
+    },
+    {
+      "path": "docs/api-spec.md",
+      "title": "API仕様書",
+      "category": "仕様書"
+    },
+    {
       "path": "docs/README.md",
       "title": "ドキュメント一覧",
-      "tags": ["overview", "docs"],
-      "order": 1
+      "category": "概要"
     }
-  ],
-  "navigation": {
-    "showTags": true,
-    "showSearch": true,
-    "groupByTags": false
-  },
-  "theme": {
-    "primaryColor": "#2c3e50",
-    "accentColor": "#3498db",
-    "fontFamily": "'Noto Sans JP', sans-serif"
-  }
+  ]
 }

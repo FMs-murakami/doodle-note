@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{PAGE_TITLE}} - {{SITE_TITLE}}</title>
+    <meta name="description" content="{{SITE_DESCRIPTION}}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="../assets/favicon.ico">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="site-title">
+                    <a href="../index.html">{{SITE_TITLE}}</a>
+                </h1>
+                <p class="site-description">{{SITE_DESCRIPTION}}</p>
+            </div>
+            <nav class="header-nav">
+                <a href="../index.html" class="nav-link">ホーム</a>
+                <a href="#" class="nav-link" onclick="toggleSidebar()">メニュー</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>ドキュメント一覧</h2>
+                <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+            </div>
+            <div class="sidebar-content">
+                {{NAVIGATION}}
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Breadcrumb -->
+                <nav class="breadcrumb">
+                    <a href="../index.html">ホーム</a>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-category">{{PAGE_CATEGORY}}</span>
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-current">{{PAGE_TITLE}}</span>
+                </nav>
+
+                <!-- Page Content -->
+                <article class="page-content">
+                    <header class="page-header">
+                        <h1 class="page-title">{{PAGE_TITLE}}</h1>
+                        <div class="page-meta">
+                            <span class="page-category">{{PAGE_CATEGORY}}</span>
+                        </div>
+                    </header>
+                    
+                    <div class="content-area">
+                        {{CONTENT}}
+                    </div>
+                </article>
+
+                <!-- Page Navigation -->
+                <nav class="page-navigation">
+                    <a href="../index.html" class="nav-button nav-button-back">
+                        ← ドキュメント一覧に戻る
+                    </a>
+                </nav>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; {{CURRENT_YEAR}} {{SITE_TITLE}}. All rights reserved.</p>
+                <p class="footer-note">社内向け技術文書管理システム</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="../assets/js/main.js"></script>
+    <script>
+        // Sidebar toggle functionality
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            sidebar.classList.toggle('sidebar-open');
+        }
+
+        // Close sidebar when clicking outside
+        document.addEventListener('click', function(event) {
+            const sidebar = document.getElementById('sidebar');
+            const isClickInsideSidebar = sidebar.contains(event.target);
+            const isMenuButton = event.target.closest('.nav-link');
+            
+            if (!isClickInsideSidebar && !isMenuButton && sidebar.classList.contains('sidebar-open')) {
+                sidebar.classList.remove('sidebar-open');
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add copy button to code blocks
+        document.querySelectorAll('pre code').forEach((block) => {
+            const button = document.createElement('button');
+            button.className = 'copy-button';
+            button.textContent = 'コピー';
+            button.addEventListener('click', () => {
+                navigator.clipboard.writeText(block.textContent).then(() => {
+                    button.textContent = 'コピー済み';
+                    setTimeout(() => {
+                        button.textContent = 'コピー';
+                    }, 2000);
+                });
+            });
+            block.parentNode.insertBefore(button, block);
+        });
+    </script>
+</body>
+</html>
