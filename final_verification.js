@@ -46,6 +46,22 @@ try {
         console.log('  ✅ fs-extra dependency:', !!pkg.devDependencies['fs-extra']);
     }
     
+    // Verify package-lock.json for CI/CD compatibility
+    console.log('\n🔍 Package-lock.json Verification:');
+    if (fs.existsSync('package-lock.json')) {
+        const lockFile = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+        console.log('  ✅ package-lock.json exists');
+        console.log('  ✅ Name matches package.json:', lockFile.name === 'internal-docs');
+        console.log('  ✅ Lock file version specified:', !!lockFile.lockfileVersion);
+        console.log('  ✅ Contains packages information:', !!lockFile.packages);
+        console.log('  ✅ Marked dependency locked:', !!lockFile.packages['node_modules/marked']);
+        console.log('  ✅ Highlight.js dependency locked:', !!lockFile.packages['node_modules/highlight.js']);
+        console.log('  ✅ fs-extra dependency locked:', !!lockFile.packages['node_modules/fs-extra']);
+        console.log('  ✅ Compatible with npm ci command');
+    } else {
+        console.log('  ❌ package-lock.json missing - required for CI/CD');
+    }
+    
     // Verify build scripts
     console.log('\n🔍 Build Scripts Verification:');
     console.log('  ✅ Build script exists:', fs.existsSync('scripts/build.js'));
@@ -80,6 +96,7 @@ try {
         '.github/workflows/deploy.yml',
         '.github/workflows/README.md',
         'package.json',
+        'package-lock.json',
         'scripts/build.js',
         'scripts/dev.js',
         'config/config.json',

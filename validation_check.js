@@ -144,6 +144,48 @@ if (packageExists) {
     }
 }
 
+// Check package-lock.json for CI/CD compatibility
+console.log('\n📋 Dependencies Lock File Validation');
+console.log('=' .repeat(60));
+
+const lockFileExists = checkFileExists('package-lock.json', 'Dependencies lock file');
+
+if (lockFileExists) {
+    const lockFileJson = validateJSON('package-lock.json', ['name', 'lockfileVersion', 'packages']);
+    
+    if (lockFileJson) {
+        // Validate lock file structure
+        if (lockFileJson.name !== 'internal-docs') {
+            console.log(`❌ package-lock.json: Name should be 'internal-docs', got '${lockFileJson.name}'`);
+            validationErrors.push('package-lock.json: Incorrect name');
+        } else {
+            console.log(`✅ package-lock.json: Name is correct`);
+        }
+        
+        if (!lockFileJson.lockfileVersion) {
+            console.log(`❌ package-lock.json: Missing lockfileVersion`);
+            validationErrors.push('package-lock.json: Missing lockfileVersion');
+        } else {
+            console.log(`✅ package-lock.json: Lock file version specified (${lockFileJson.lockfileVersion})`);
+        }
+        
+        // Check for required dependencies in lock file
+        const requiredDeps = ['marked', 'highlight.js', 'fs-extra'];
+        for (const dep of requiredDeps) {
+            const depKey = `node_modules/${dep}`;
+            if (!lockFileJson.packages || !lockFileJson.packages[depKey]) {
+                console.log(`❌ package-lock.json: Missing dependency '${dep}'`);
+                validationErrors.push(`package-lock.json: Missing dependency '${dep}'`);
+            } else {
+                console.log(`✅ package-lock.json: Dependency '${dep}' locked`);
+            }
+        }
+    }
+} else {
+    console.log(`❌ package-lock.json: File is required for CI/CD pipeline (npm ci)`);
+    validationErrors.push('package-lock.json: Required for CI/CD pipeline');
+}
+
 // Check build scripts
 console.log('\n📋 Build Scripts Validation');
 console.log('=' .repeat(60));

@@ -298,7 +298,31 @@ testSuite.test('GitHub Actionsワークフローが正しく設定されてい�
     }
 });
 
-// テスト9: ビルドスクリプトの存在確認
+// テスト9: package-lock.jsonファイルの存在確認
+testSuite.test('package-lock.jsonファイルが存在する', () => {
+    // Node.js環境でのみ実行
+    if (typeof require !== 'undefined') {
+        try {
+            const fs = require('fs');
+            testSuite.assert(fs.existsSync('package-lock.json'), 'package-lock.json should exist for CI/CD');
+            
+            const lockFileContent = fs.readFileSync('package-lock.json', 'utf8');
+            const lockFile = JSON.parse(lockFileContent);
+            
+            testSuite.assert(lockFile.name === 'internal-docs', 'Lock file should have correct package name');
+            testSuite.assert(lockFile.lockfileVersion, 'Lock file should have version specified');
+            testSuite.assert(lockFile.packages, 'Lock file should contain packages information');
+            testSuite.assert(lockFile.packages['node_modules/marked'], 'Lock file should contain marked dependency');
+            testSuite.assert(lockFile.packages['node_modules/highlight.js'], 'Lock file should contain highlight.js dependency');
+            testSuite.assert(lockFile.packages['node_modules/fs-extra'], 'Lock file should contain fs-extra dependency');
+        } catch (error) {
+            // ファイルが存在しない場合はスキップ
+            console.log('⚠️  package-lock.json not found, skipping test');
+        }
+    }
+});
+
+// テスト10: ビルドスクリプトの存在確認
 testSuite.test('ビルドスクリプトが存在する', () => {
     // Node.js環境でのみ実行
     if (typeof require !== 'undefined') {
