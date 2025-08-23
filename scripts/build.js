@@ -36,13 +36,13 @@ async function copyStaticFiles() {
 }
 
 /**
- * Generate index page HTML
+ * Generate index page HTML with sidebar and header layout
  */
 async function generateIndex(config) {
   console.log('📄 Generating index page...');
   
-  const groupedPages = groupPagesByCategory(config.pages);
-  const categories = getCategories(config.pages);
+  const { generateEnhancedSidebar } = require('./sidebar');
+  const sidebarHtml = generateEnhancedSidebar(config, null, true);
   
   let indexHtml = `<!DOCTYPE html>
 <html lang="ja">
@@ -51,62 +51,79 @@ async function generateIndex(config) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>${config.site.title}</title>
     <meta name="description" content="${config.site.description}">
+    
+    <!-- CSS -->
     <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
 </head>
 <body>
+    <!-- Header -->
     <header class="site-header">
         <div class="container">
             <div class="header-content">
-                <h1 class="site-title">${config.site.title}</h1>
+                <h1 class="site-title">
+                    <a href="index.html">${config.site.title}</a>
+                </h1>
                 <p class="site-description">${config.site.description}</p>
             </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">ホーム</a>
+                <a href="#" class="nav-link" onclick="toggleSidebar()">メニュー</a>
+            </nav>
         </div>
     </header>
 
-    <main class="main-content">
-        <div class="container">
-            <div class="index-content">
-                <section class="welcome-section">
-                    <h2>ドキュメント一覧</h2>
-                    <p>カテゴリ別に整理された技術文書をご覧いただけます。</p>
-                </section>
-
-                <div class="categories-grid">`;
-
-  // Generate category sections
-  categories.forEach(category => {
-    const pages = groupedPages[category];
-    indexHtml += `
-                    <div class="category-section">
-                        <h3 class="category-title">${category}</h3>
-                        <div class="category-pages">`;
-    
-    pages.forEach(page => {
-      const htmlPath = page.path.replace('.md', '.html');
-      indexHtml += `
-                            <div class="page-card">
-                                <h4 class="page-title">
-                                    <a href="${htmlPath}">${page.title}</a>
-                                </h4>
-                                <p class="page-category">${page.category}</p>
-                            </div>`;
-    });
-    
-    indexHtml += `
-                        </div>
-                    </div>`;
-  });
-
-  indexHtml += `
-                </div>
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>ドキュメント一覧</h2>
+                <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
             </div>
-        </div>
-    </main>
+            <div class="sidebar-content">
+                ${sidebarHtml}
+            </div>
+        </aside>
 
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Page Content -->
+                <article class="page-content">
+                    <header class="page-header">
+                        <h1 class="page-title">ドキュメント一覧</h1>
+                        <div class="page-meta">
+                            <span class="page-category">概要</span>
+                        </div>
+                    </header>
+                    
+                    <div class="content-area">
+                        <div class="index-content">
+                            <div class="welcome-section">
+                                <h2>社内技術文書管理システム</h2>
+                                <p>左側のサイドバーから各カテゴリのドキュメントにアクセスできます。検索機能を使用してページタイトルで絞り込むことも可能です。</p>
+                            </div>
+                            
+                            <div class="categories-grid" id="categories-grid">
+                                <!-- Categories will be generated by JavaScript -->
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
     <footer class="site-footer">
         <div class="container">
             <div class="footer-content">
@@ -116,7 +133,14 @@ async function generateIndex(config) {
         </div>
     </footer>
 
+    <!-- JavaScript -->
     <script src="assets/js/main.js"></script>
+    <script src="assets/js/sidebar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // Initialize syntax highlighting
+        hljs.highlightAll();
+    </script>
 </body>
 </html>`;
 

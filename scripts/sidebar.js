@@ -132,7 +132,7 @@ function generateEnhancedSidebar(config, currentPage, includeSearch = true) {
   // Add search functionality if requested
   if (includeSearch) {
     html += `<div class="sidebar-search">\n`;
-    html += `  <input type="text" class="search-input" placeholder="ドキュメントを検索..." aria-label="ドキュメント検索">\n`;
+    html += `  <input type="text" class="search-input" placeholder="ページタイトルで検索..." aria-label="ページタイトル検索">\n`;
     html += `  <div class="search-results" role="region" aria-live="polite"></div>\n`;
     html += `</div>\n`;
   }

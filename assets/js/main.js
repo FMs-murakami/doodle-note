@@ -1,39 +1,78 @@
 // Main JavaScript file for the internal documentation site
 
+// Configuration data - in a real application, this would be loaded from config.json
+const siteConfig = {
+    "site": {
+        "title": "社内手順書・仕様書",
+        "description": "社内向け技術文書管理システム",
+        "baseUrl": "/"
+    },
+    "pages": [
+        {
+            "path": "docs/README.md",
+            "title": "ドキュメント一覧",
+            "category": "概要"
+        },
+        {
+            "path": "docs/setup/environment.md",
+            "title": "開発環境セットアップ",
+            "category": "環境構築"
+        },
+        {
+            "path": "docs/setup/deployment.md",
+            "title": "デプロイメント手順",
+            "category": "環境構築"
+        },
+        {
+            "path": "docs/setup.md",
+            "title": "環境セットアップ手順",
+            "category": "環境構築"
+        },
+        {
+            "path": "docs/setup/windows.md",
+            "title": "Windows環境構築",
+            "category": "環境構築"
+        },
+        {
+            "path": "docs/setup/macos.md",
+            "title": "macOS環境構築",
+            "category": "環境構築"
+        },
+        {
+            "path": "docs/api/authentication.md",
+            "title": "API認証仕様",
+            "category": "API"
+        },
+        {
+            "path": "docs/api/endpoints.md",
+            "title": "APIエンドポイント仕様",
+            "category": "API"
+        },
+        {
+            "path": "docs/api-spec.md",
+            "title": "API仕様書",
+            "category": "API"
+        },
+        {
+            "path": "docs/guides/troubleshooting.md",
+            "title": "トラブルシューティングガイド",
+            "category": "ガイド"
+        },
+        {
+            "path": "docs/guides/best-practices.md",
+            "title": "ベストプラクティス",
+            "category": "ガイド"
+        }
+    ]
+};
+
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize the site
-    initializeSearch();
     initializeNavigation();
+    generateCategoriesGrid();
     
     console.log('社内ドキュメントサイト initialized');
 });
-
-// Search functionality
-function initializeSearch() {
-    const searchInput = document.querySelector('.search-input');
-    if (searchInput) {
-        searchInput.addEventListener('input', function(e) {
-            const query = e.target.value.toLowerCase();
-            filterContent(query);
-        });
-    }
-}
-
-// Filter content based on search query
-function filterContent(query) {
-    const cards = document.querySelectorAll('.card');
-    
-    cards.forEach(card => {
-        const title = card.querySelector('.card-title')?.textContent.toLowerCase() || '';
-        const content = card.textContent.toLowerCase();
-        
-        if (title.includes(query) || content.includes(query)) {
-            card.style.display = 'block';
-        } else {
-            card.style.display = query === '' ? 'block' : 'none';
-        }
-    });
-}
 
 // Navigation functionality
 function initializeNavigation() {
@@ -46,38 +85,104 @@ function initializeNavigation() {
             link.classList.add('active');
         }
     });
+    
+    // Generate sidebar navigation
+    generateSidebarNavigation();
 }
 
-// Tag filtering
-function filterByTag(tag) {
-    const cards = document.querySelectorAll('.card');
+// Generate sidebar navigation based on directory structure
+function generateSidebarNavigation() {
+    const navigationContainer = document.getElementById('navigation');
+    if (!navigationContainer) return;
     
-    cards.forEach(card => {
-        const tags = card.querySelectorAll('.tag');
-        let hasTag = false;
+    // Group pages by category
+    const categories = {};
+    siteConfig.pages.forEach(page => {
+        if (!categories[page.category]) {
+            categories[page.category] = [];
+        }
+        categories[page.category].push(page);
+    });
+    
+    // Generate navigation HTML
+    let navigationHTML = '';
+    Object.keys(categories).forEach(categoryName => {
+        const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
+        navigationHTML += `
+            <div class="nav-category expanded" data-category="${categoryId}">
+                <button class="nav-category-toggle" aria-expanded="true">
+                    <h3 class="nav-category-title">${categoryName}</h3>
+                    <span class="nav-category-icon">▼</span>
+                </button>
+                <ul class="nav-category-list">
+        `;
         
-        tags.forEach(tagElement => {
-            if (tagElement.textContent.toLowerCase() === tag.toLowerCase()) {
-                hasTag = true;
-            }
+        categories[categoryName].forEach(page => {
+            const pageUrl = convertPathToUrl(page.path);
+            navigationHTML += `
+                <li>
+                    <a href="${pageUrl}">${page.title}</a>
+                </li>
+            `;
         });
         
-        card.style.display = hasTag ? 'block' : 'none';
+        navigationHTML += `
+                </ul>
+            </div>
+        `;
     });
+    
+    navigationContainer.innerHTML = navigationHTML;
 }
 
-// Clear all filters
-function clearFilters() {
-    const cards = document.querySelectorAll('.card');
-    const searchInput = document.querySelector('.search-input');
+// Generate categories grid for the main content area
+function generateCategoriesGrid() {
+    const categoriesGrid = document.getElementById('categories-grid');
+    if (!categoriesGrid) return;
     
-    cards.forEach(card => {
-        card.style.display = 'block';
+    // Group pages by category
+    const categories = {};
+    siteConfig.pages.forEach(page => {
+        if (!categories[page.category]) {
+            categories[page.category] = [];
+        }
+        categories[page.category].push(page);
     });
     
-    if (searchInput) {
-        searchInput.value = '';
-    }
+    // Generate categories grid HTML
+    let gridHTML = '';
+    Object.keys(categories).forEach(categoryName => {
+        gridHTML += `
+            <div class="category-section">
+                <h3 class="category-title">${categoryName}</h3>
+                <div class="category-pages">
+        `;
+        
+        categories[categoryName].forEach(page => {
+            const pageUrl = convertPathToUrl(page.path);
+            gridHTML += `
+                <div class="page-card">
+                    <h4 class="page-title">
+                        <a href="${pageUrl}">${page.title}</a>
+                    </h4>
+                    <p class="page-category">${page.category}</p>
+                </div>
+            `;
+        });
+        
+        gridHTML += `
+                </div>
+            </div>
+        `;
+    });
+    
+    categoriesGrid.innerHTML = gridHTML;
+}
+
+// Convert markdown file path to HTML URL
+function convertPathToUrl(path) {
+    // Convert docs/path/file.md to docs/path/file.html
+    return path.replace(/\.md$/, '.html');
 }
 
 // Utility function to show loading state
