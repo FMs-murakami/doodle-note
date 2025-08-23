@@ -17,8 +17,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "marked": "^5.0.0",
+    "fs-extra": "^11.3.1",
     "highlight.js": "^11.8.0",
-    "fs-extra": "^11.1.0"
+    "marked": "^5.0.0"
   }
 }
