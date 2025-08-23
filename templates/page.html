@@ -107,6 +107,7 @@
             const button = document.createElement('button');
             button.className = 'copy-button';
             button.textContent = 'コピー';
+            button.setAttribute('aria-label', 'コードをコピー');
             button.addEventListener('click', () => {
                 navigator.clipboard.writeText(block.textContent).then(() => {
                     button.textContent = 'コピー済み';

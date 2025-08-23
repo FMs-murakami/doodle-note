@@ -26,6 +26,16 @@
       "category": "環境構築"
     },
     {
+      "path": "docs/setup/windows.md",
+      "title": "Windows環境構築",
+      "category": "環境構築"
+    },
+    {
+      "path": "docs/setup/macos.md",
+      "title": "macOS環境構築",
+      "category": "環境構築"
+    },
+    {
       "path": "docs/api/authentication.md",
       "title": "API認証仕様",
       "category": "API"

@@ -28,6 +28,7 @@ class SidebarManager {
     this.createOverlay();
     this.bindEvents();
     this.initializeSearch();
+    this.initializeCategoryToggles();
     this.handleInitialState();
     
     console.log('Sidebar initialized');
@@ -116,6 +117,91 @@ class SidebarManager {
   }
   
   /**
+   * Initialize category toggle functionality
+   */
+  initializeCategoryToggles() {
+    const categoryToggles = this.sidebar.querySelectorAll('.nav-category-toggle');
+    
+    categoryToggles.forEach(toggle => {
+      toggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        this.toggleCategory(toggle);
+      });
+      
+      // Handle keyboard navigation
+      toggle.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          this.toggleCategory(toggle);
+        }
+      });
+    });
+  }
+  
+  /**
+   * Toggle category expand/collapse
+   * @param {HTMLElement} toggle - Toggle button element
+   */
+  toggleCategory(toggle) {
+    const category = toggle.closest('.nav-category');
+    const isExpanded = category.classList.contains('expanded');
+    
+    if (isExpanded) {
+      category.classList.remove('expanded');
+      toggle.setAttribute('aria-expanded', 'false');
+    } else {
+      category.classList.add('expanded');
+      toggle.setAttribute('aria-expanded', 'true');
+    }
+    
+    // Store state in sessionStorage for persistence during navigation
+    const categoryId = category.getAttribute('data-category');
+    if (categoryId) {
+      const expandedCategories = this.getExpandedCategories();
+      if (isExpanded) {
+        expandedCategories.delete(categoryId);
+      } else {
+        expandedCategories.add(categoryId);
+      }
+      this.saveExpandedCategories(expandedCategories);
+    }
+  }
+  
+  /**
+   * Get expanded categories from sessionStorage
+   * @returns {Set} Set of expanded category IDs
+   */
+  getExpandedCategories() {
+    const stored = sessionStorage.getItem('expandedCategories');
+    return stored ? new Set(JSON.parse(stored)) : new Set();
+  }
+  
+  /**
+   * Save expanded categories to sessionStorage
+   * @param {Set} expandedCategories - Set of expanded category IDs
+   */
+  saveExpandedCategories(expandedCategories) {
+    sessionStorage.setItem('expandedCategories', JSON.stringify([...expandedCategories]));
+  }
+  
+  /**
+   * Restore expanded state from sessionStorage
+   */
+  restoreExpandedState() {
+    const expandedCategories = this.getExpandedCategories();
+    
+    expandedCategories.forEach(categoryId => {
+      const category = this.sidebar.querySelector(`[data-category="${categoryId}"]`);
+      const toggle = category?.querySelector('.nav-category-toggle');
+      
+      if (category && toggle && !category.classList.contains('expanded')) {
+        category.classList.add('expanded');
+        toggle.setAttribute('aria-expanded', 'true');
+      }
+    });
+  }
+  
+  /**
    * Build search data from navigation
    */
   buildSearchData() {
@@ -139,7 +225,7 @@ class SidebarManager {
     
     if (trimmedQuery.length < 2) {
       this.searchResults.innerHTML = '';
-      this.showAllCategories();
+      this.restoreCategoriesAfterSearch();
       return;
     }
     
@@ -249,12 +335,21 @@ class SidebarManager {
   }
   
   /**
-   * Show all navigation categories
+   * Show all navigation categories (expand for search)
    */
   showAllCategories() {
     const categories = this.sidebar.querySelectorAll('.nav-category');
     categories.forEach(category => {
       category.style.display = 'flex';
+      // Temporarily expand all categories for search visibility
+      if (!category.classList.contains('expanded')) {
+        category.classList.add('search-expanded');
+        category.classList.add('expanded');
+        const toggle = category.querySelector('.nav-category-toggle');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'true');
+        }
+      }
     });
   }
   
@@ -266,6 +361,28 @@ class SidebarManager {
     categories.forEach(category => {
       category.style.display = 'none';
     });
+  }
+  
+  /**
+   * Restore categories to their original state after search
+   */
+  restoreCategoriesAfterSearch() {
+    const categories = this.sidebar.querySelectorAll('.nav-category');
+    categories.forEach(category => {
+      category.style.display = 'flex';
+      // Remove temporary search expansion
+      if (category.classList.contains('search-expanded')) {
+        category.classList.remove('search-expanded');
+        category.classList.remove('expanded');
+        const toggle = category.querySelector('.nav-category-toggle');
+        if (toggle) {
+          toggle.setAttribute('aria-expanded', 'false');
+        }
+      }
+    });
+    
+    // Restore the actual expanded state
+    this.restoreExpandedState();
   }
   
   /**
@@ -323,7 +440,7 @@ class SidebarManager {
       if (this.searchResults) {
         this.searchResults.innerHTML = '';
       }
-      this.showAllCategories();
+      this.restoreCategoriesAfterSearch();
     }
     
     this.isOpen = false;
@@ -350,6 +467,9 @@ class SidebarManager {
     if (window.innerWidth <= 1024) {
       this.close();
     }
+    
+    // Restore expanded state from sessionStorage
+    this.restoreExpandedState();
   }
   
   /**

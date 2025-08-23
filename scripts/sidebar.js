@@ -49,7 +49,7 @@ function getPageUrl(page, currentPath = '') {
 }
 
 /**
- * Generate enhanced sidebar navigation HTML
+ * Generate enhanced sidebar navigation HTML with collapsible categories
  * @param {Object} config - Site configuration
  * @param {string} currentPage - Current page path for highlighting
  * @returns {string} Navigation HTML
@@ -77,13 +77,28 @@ function generateSidebar(config, currentPage) {
     return a.localeCompare(b, 'ja');
   });
   
+  // Determine which category should be expanded (contains current page)
+  let currentPageCategory = null;
+  if (currentPage) {
+    const currentPageObj = config.pages.find(page => page.path === currentPage);
+    if (currentPageObj) {
+      currentPageCategory = currentPageObj.category || '未分類';
+    }
+  }
+  
   sortedCategories.forEach(category => {
     const pages = categories[category];
     const categoryId = category.toLowerCase().replace(/\s+/g, '-');
+    const isExpanded = category === currentPageCategory;
+    const expandedClass = isExpanded ? ' expanded' : '';
+    const ariaExpanded = isExpanded ? 'true' : 'false';
     
-    html += `  <div class="nav-category" data-category="${categoryId}">\n`;
-    html += `    <h3 class="nav-category-title">${category}</h3>\n`;
-    html += `    <ul class="nav-category-list" role="list">\n`;
+    html += `  <div class="nav-category${expandedClass}" data-category="${categoryId}">\n`;
+    html += `    <button class="nav-category-toggle" aria-expanded="${ariaExpanded}" aria-controls="category-${categoryId}">\n`;
+    html += `      <span class="nav-category-title">${category}</span>\n`;
+    html += `      <span class="nav-category-icon" aria-hidden="true">▼</span>\n`;
+    html += `    </button>\n`;
+    html += `    <ul class="nav-category-list" role="list" id="category-${categoryId}">\n`;
     
     pages.forEach(page => {
       const isActive = page.path === currentPage;
