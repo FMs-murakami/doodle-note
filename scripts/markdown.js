@@ -123,6 +123,16 @@ function generateNavigation(groupedPages, currentPath) {
 }
 
 /**
+ * Calculate relative path to root based on page depth
+ * @param {string} pagePath - Path to the page (e.g., "docs/setup/macos.md")
+ * @returns {string} Relative path to root (e.g., "../../")
+ */
+function calculateRelativePath(pagePath) {
+  const depth = pagePath.split('/').length - 1;
+  return depth > 0 ? '../'.repeat(depth) : './';
+}
+
+/**
  * Convert a single markdown page to HTML
  * @param {Object} page - Page configuration
  * @param {Object} config - Site configuration
@@ -149,6 +159,9 @@ async function convertMarkdown(page, config, groupedPages) {
     // Generate navigation
     const navigation = generateNavigation(groupedPages, page.path);
     
+    // Calculate relative path to root for this page
+    const relativePath = calculateRelativePath(page.path);
+    
     // Replace template variables
     const finalHtml = template
       .replace(/\{\{SITE_TITLE\}\}/g, config.site.title)
@@ -157,7 +170,8 @@ async function convertMarkdown(page, config, groupedPages) {
       .replace(/\{\{PAGE_CATEGORY\}\}/g, page.category)
       .replace(/\{\{NAVIGATION\}\}/g, navigation)
       .replace(/\{\{CONTENT\}\}/g, html)
-      .replace(/\{\{CURRENT_YEAR\}\}/g, new Date().getFullYear().toString());
+      .replace(/\{\{CURRENT_YEAR\}\}/g, new Date().getFullYear().toString())
+      .replace(/\{\{RELATIVE_PATH\}\}/g, relativePath);
     
     return finalHtml;
     

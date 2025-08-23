@@ -64,9 +64,6 @@
                 <article class="page-content">
                     <header class="page-header">
                         <h1 class="page-title">ドキュメント一覧</h1>
-                        <div class="page-meta">
-                            <span class="page-category">概要</span>
-                        </div>
                     </header>
                     
                     <div class="content-area">
@@ -74,6 +71,57 @@
                             <div class="welcome-section">
                                 <h2>社内技術文書管理システム</h2>
                                 <p>左側のサイドバーから各カテゴリのドキュメントにアクセスできます。検索機能を使用してページタイトルで絞り込むことも可能です。</p>
+                            </div>
+                            
+                            <div class="page-addition-guide">
+                                <h2>📝 新しいページの追加手順</h2>
+                                <p>このサイトに新しいドキュメントページを追加する方法を説明します。</p>
+                                
+                                <h3>1. Markdownファイルの作成</h3>
+                                <p>適切なディレクトリにMarkdownファイル（.md）を作成します：</p>
+                                <ul>
+                                    <li><strong>API関連:</strong> <code>docs/api/</code> ディレクトリ</li>
+                                    <li><strong>ガイド:</strong> <code>docs/guides/</code> ディレクトリ</li>
+                                    <li><strong>セットアップ:</strong> <code>docs/setup/</code> ディレクトリ</li>
+                                </ul>
+                                
+                                <h3>2. ファイル形式</h3>
+                                <p>Markdownファイルの先頭にフロントマターを追加してください：</p>
+                                <pre><code>---
+title: ページタイトル
+category: カテゴリ名
+---
+
+# ページタイトル
+
+ここにコンテンツを記述します。</code></pre>
+                                
+                                <h3>3. 設定ファイルの更新</h3>
+                                <p><code>config/config.json</code> ファイルの <code>pages</code> 配列に新しいページを追加します：</p>
+                                <pre><code>{
+  "title": "ページタイトル",
+  "path": "docs/category/filename.md",
+  "category": "カテゴリ名"
+}</code></pre>
+                                
+                                <h3>4. ビルドとデプロイ</h3>
+                                <p>変更をコミットしてプッシュすると、GitHub Actionsが自動的にサイトをビルド・デプロイします：</p>
+                                <pre><code>git add .
+git commit -m "新しいページを追加: ページタイトル"
+git push origin main</code></pre>
+                                
+                                <h3>5. 確認事項</h3>
+                                <ul>
+                                    <li>ファイル名は英数字とハイフンのみ使用</li>
+                                    <li>カテゴリ名は既存のものを使用するか、新規作成</li>
+                                    <li>画像ファイルは <code>assets/images/</code> に配置</li>
+                                    <li>コードブロックには適切な言語指定を追加</li>
+                                </ul>
+                                
+                                <div class="note-box">
+                                    <h4>💡 ヒント</h4>
+                                    <p>既存のページを参考にして、同じ形式でファイルを作成することをお勧めします。</p>
+                                </div>
                             </div>
                             
                             <div class="categories-grid" id="categories-grid">
@@ -85,16 +133,6 @@
             </div>
         </main>
     </div>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; 2024 社内手順書・仕様書. All rights reserved.</p>
-                <p class="footer-note">社内向け技術文書管理システム</p>
-            </div>
-        </div>
-    </footer>
 
     <!-- JavaScript -->
     <script src="assets/js/main.js"></script>
