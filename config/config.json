@@ -7,58 +7,47 @@
   "pages": [
     {
       "path": "docs/README.md",
-      "title": "ドキュメント一覧",
-      "category": "概要"
+      "title": "ドキュメント一覧"
     },
     {
       "path": "docs/setup/environment.md",
-      "title": "開発環境セットアップ",
-      "category": "環境構築"
+      "title": "開発環境セットアップ"
     },
     {
       "path": "docs/setup/deployment.md",
-      "title": "デプロイメント手順",
-      "category": "環境構築"
+      "title": "デプロイメント手順"
     },
     {
       "path": "docs/setup.md",
-      "title": "環境セットアップ手順",
-      "category": "環境構築"
+      "title": "環境セットアップ手順"
     },
     {
       "path": "docs/setup/windows.md",
-      "title": "Windows環境構築",
-      "category": "環境構築"
+      "title": "Windows環境構築"
     },
     {
       "path": "docs/setup/macos.md",
-      "title": "macOS環境構築",
-      "category": "環境構築"
+      "title": "macOS環境構築"
     },
     {
       "path": "docs/api/authentication.md",
-      "title": "API認証仕様",
-      "category": "API"
+      "title": "API認証仕様"
     },
     {
       "path": "docs/api/endpoints.md",
-      "title": "APIエンドポイント仕様",
-      "category": "API"
+      "title": "APIエンドポイント仕様"
     },
     {
       "path": "docs/api-spec.md",
-      "title": "API仕様書",
-      "category": "API"
+      "title": "API仕様書"
     },
     {
       "path": "docs/guides/troubleshooting.md",
-      "title": "トラブルシューティングガイド",
-      "category": "ガイド"
+      "title": "トラブルシューティングガイド"
     },
     {
       "path": "docs/guides/best-practices.md",
-      "title": "ベストプラクティス",
-      "category": "ガイド"
+      "title": "ベストプラクティス"
     }
   ]
 }

@@ -96,8 +96,8 @@ async function convertMarkdownToHtml(markdownContent) {
 }
 
 /**
- * Generate navigation HTML for sidebar using enhanced sidebar module
- * @param {Object} groupedPages - Pages grouped by category
+ * Generate navigation HTML for sidebar
+ * @param {Object} groupedPages - Pages grouped by category (not used anymore)
  * @param {string} currentPath - Current page path for highlighting
  * @returns {string} Navigation HTML
  */
@@ -109,13 +109,10 @@ function generateNavigation(groupedPages, currentPath) {
     pages: []
   };
   
-  // Flatten grouped pages back to array format
+  // Flatten grouped pages back to array format (for compatibility)
   Object.keys(groupedPages).forEach(category => {
     groupedPages[category].forEach(page => {
-      mockConfig.pages.push({
-        ...page,
-        category: category
-      });
+      mockConfig.pages.push(page);
     });
   });
   
@@ -167,7 +164,6 @@ async function convertMarkdown(page, config, groupedPages) {
       .replace(/\{\{SITE_TITLE\}\}/g, config.site.title)
       .replace(/\{\{SITE_DESCRIPTION\}\}/g, config.site.description)
       .replace(/\{\{PAGE_TITLE\}\}/g, frontmatter.title || page.title)
-      .replace(/\{\{PAGE_CATEGORY\}\}/g, page.category)
       .replace(/\{\{NAVIGATION\}\}/g, navigation)
       .replace(/\{\{CONTENT\}\}/g, html)
       .replace(/\{\{CURRENT_YEAR\}\}/g, new Date().getFullYear().toString())

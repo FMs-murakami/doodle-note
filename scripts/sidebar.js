@@ -1,34 +1,10 @@
 /**
  * Dynamic Sidebar Generation Module
- * Handles category-based navigation generation with enhanced features
+ * Handles navigation generation without categories
  */
 
 const fs = require('fs-extra');
 const path = require('path');
-
-/**
- * Group pages by category with enhanced sorting
- * @param {Array} pages - Array of page objects
- * @returns {Object} Pages grouped by category
- */
-function groupByCategory(pages) {
-  const grouped = {};
-  
-  pages.forEach(page => {
-    const category = page.category || '未分類';
-    if (!grouped[category]) {
-      grouped[category] = [];
-    }
-    grouped[category].push(page);
-  });
-  
-  // Sort pages within each category by title
-  Object.keys(grouped).forEach(category => {
-    grouped[category].sort((a, b) => a.title.localeCompare(b.title, 'ja'));
-  });
-  
-  return grouped;
-}
 
 /**
  * Get page URL for navigation
@@ -49,73 +25,38 @@ function getPageUrl(page, currentPath = '') {
 }
 
 /**
- * Generate enhanced sidebar navigation HTML with collapsible categories
+ * Generate enhanced sidebar navigation HTML without categories
  * @param {Object} config - Site configuration
  * @param {string} currentPage - Current page path for highlighting
  * @returns {string} Navigation HTML
  */
 function generateSidebar(config, currentPage) {
-  const categories = groupByCategory(config.pages);
   let html = '<nav class="sidebar-nav" role="navigation" aria-label="ドキュメントナビゲーション">\n';
   
-  // Define category order (can be customized)
-  const categoryOrder = ['概要', '環境構築', '仕様書', 'ガイド', 'API', 'トラブルシューティング'];
-  const sortedCategories = Object.keys(categories).sort((a, b) => {
-    const aIndex = categoryOrder.indexOf(a);
-    const bIndex = categoryOrder.indexOf(b);
+  // Sort pages by title
+  const sortedPages = config.pages.slice().sort((a, b) => a.title.localeCompare(b.title, 'ja'));
+  
+  html += '  <div class="nav-category expanded">\n';
+  html += '    <div class="nav-category-header">\n';
+  html += '      <span class="nav-category-title">ドキュメント一覧</span>\n';
+  html += '    </div>\n';
+  html += '    <ul class="nav-category-list" role="list">\n';
+  
+  sortedPages.forEach(page => {
+    const isActive = page.path === currentPage;
+    const pageUrl = getPageUrl(page, currentPage);
+    const activeClass = isActive ? ' class="active"' : '';
+    const ariaCurrent = isActive ? ' aria-current="page"' : '';
     
-    // If both categories are in the order array, sort by their position
-    if (aIndex !== -1 && bIndex !== -1) {
-      return aIndex - bIndex;
-    }
-    
-    // If only one is in the order array, prioritize it
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
-    
-    // If neither is in the order array, sort alphabetically
-    return a.localeCompare(b, 'ja');
+    html += '      <li role="listitem">\n';
+    html += `        <a href="${pageUrl}"${activeClass}${ariaCurrent}>${page.title}</a>\n`;
+    html += '      </li>\n';
   });
   
-  // Determine which category should be expanded (contains current page)
-  let currentPageCategory = null;
-  if (currentPage) {
-    const currentPageObj = config.pages.find(page => page.path === currentPage);
-    if (currentPageObj) {
-      currentPageCategory = currentPageObj.category || '未分類';
-    }
-  }
-  
-  sortedCategories.forEach(category => {
-    const pages = categories[category];
-    const categoryId = category.toLowerCase().replace(/\s+/g, '-');
-    const isExpanded = category === currentPageCategory;
-    const expandedClass = isExpanded ? ' expanded' : '';
-    const ariaExpanded = isExpanded ? 'true' : 'false';
-    
-    html += `  <div class="nav-category${expandedClass}" data-category="${categoryId}">\n`;
-    html += `    <button class="nav-category-toggle" aria-expanded="${ariaExpanded}" aria-controls="category-${categoryId}">\n`;
-    html += `      <span class="nav-category-title">${category}</span>\n`;
-    html += `      <span class="nav-category-icon" aria-hidden="true">▼</span>\n`;
-    html += `    </button>\n`;
-    html += `    <ul class="nav-category-list" role="list" id="category-${categoryId}">\n`;
-    
-    pages.forEach(page => {
-      const isActive = page.path === currentPage;
-      const pageUrl = getPageUrl(page, currentPage);
-      const activeClass = isActive ? ' class="active"' : '';
-      const ariaCurrent = isActive ? ' aria-current="page"' : '';
-      
-      html += `      <li role="listitem">\n`;
-      html += `        <a href="${pageUrl}"${activeClass}${ariaCurrent}>${page.title}</a>\n`;
-      html += `      </li>\n`;
-    });
-    
-    html += `    </ul>\n`;
-    html += `  </div>\n`;
-  });
-  
+  html += '    </ul>\n';
+  html += '  </div>\n';
   html += '</nav>\n';
+  
   return html;
 }
 
@@ -144,7 +85,7 @@ function generateEnhancedSidebar(config, currentPage, includeSearch = true) {
 }
 
 /**
- * Generate breadcrumb navigation
+ * Generate breadcrumb navigation without categories
  * @param {Object} page - Current page object
  * @param {Object} config - Site configuration
  * @returns {string} Breadcrumb HTML
@@ -153,13 +94,6 @@ function generateBreadcrumb(page, config) {
   let html = '<nav class="breadcrumb" aria-label="パンくずナビゲーション">\n';
   html += '  <a href="../index.html">ホーム</a>\n';
   html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
-  
-  if (page.category) {
-    const categorySlug = page.category.toLowerCase().replace(/\s+/g, '-');
-    html += `  <a href="../categories/${categorySlug}.html">${page.category}</a>\n`;
-    html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
-  }
-  
   html += `  <span class="breadcrumb-current" aria-current="page">${page.title}</span>\n`;
   html += '</nav>\n';
   
@@ -167,27 +101,24 @@ function generateBreadcrumb(page, config) {
 }
 
 /**
- * Generate category statistics for dashboard
+ * Generate page statistics for dashboard
  * @param {Object} config - Site configuration
- * @returns {Object} Category statistics
+ * @returns {Object} Page statistics
  */
 function generateCategoryStats(config) {
-  const categories = groupByCategory(config.pages);
   const stats = {
     totalPages: config.pages.length,
-    totalCategories: Object.keys(categories).length,
-    categories: {}
+    totalCategories: 1, // No categories, just one group
+    categories: {
+      'すべて': {
+        count: config.pages.length,
+        pages: config.pages.map(page => ({
+          title: page.title,
+          path: page.path
+        }))
+      }
+    }
   };
-  
-  Object.keys(categories).forEach(category => {
-    stats.categories[category] = {
-      count: categories[category].length,
-      pages: categories[category].map(page => ({
-        title: page.title,
-        path: page.path
-      }))
-    };
-  });
   
   return stats;
 }
@@ -262,8 +193,7 @@ function generatePageNavigation(currentPage, config) {
     const prevPage = allPages[currentIndex - 1];
     navigation.previous = {
       title: prevPage.title,
-      url: getPageUrl(prevPage, currentPage.path),
-      category: prevPage.category
+      url: getPageUrl(prevPage, currentPage.path)
     };
   }
   
@@ -271,8 +201,7 @@ function generatePageNavigation(currentPage, config) {
     const nextPage = allPages[currentIndex + 1];
     navigation.next = {
       title: nextPage.title,
-      url: getPageUrl(nextPage, currentPage.path),
-      category: nextPage.category
+      url: getPageUrl(nextPage, currentPage.path)
     };
   }
   
@@ -286,6 +215,5 @@ module.exports = {
   generateCategoryStats,
   generateTableOfContents,
   generatePageNavigation,
-  groupByCategory,
   getPageUrl
 };

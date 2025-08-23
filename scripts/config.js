@@ -63,8 +63,8 @@ function validateConfig(config) {
   
   // Validate pages configuration
   config.pages.forEach((page, index) => {
-    if (!page.path || !page.title || !page.category) {
-      throw new Error(`Page at index ${index} missing required properties (path, title, category)`);
+    if (!page.path || !page.title) {
+      throw new Error(`Page at index ${index} missing required properties (path, title)`);
     }
     
     if (!page.path.endsWith('.md')) {
@@ -96,39 +96,30 @@ async function validateFilePaths(pages) {
 }
 
 /**
- * Group pages by category
+ * Group pages by category (fallback for compatibility)
  * @param {Array} pages - Array of page configurations
- * @returns {Object} Pages grouped by category
+ * @returns {Object} Pages grouped by category (single "all" category)
  */
 function groupPagesByCategory(pages) {
-  const grouped = {};
+  // Since we no longer use categories, return all pages under a single group
+  const grouped = {
+    'すべて': pages.slice() // Create a copy of the pages array
+  };
   
-  pages.forEach(page => {
-    const category = page.category || 'その他';
-    
-    if (!grouped[category]) {
-      grouped[category] = [];
-    }
-    
-    grouped[category].push(page);
-  });
-  
-  // Sort pages within each category by title
-  Object.keys(grouped).forEach(category => {
-    grouped[category].sort((a, b) => a.title.localeCompare(b.title, 'ja'));
-  });
+  // Sort pages by title
+  grouped['すべて'].sort((a, b) => a.title.localeCompare(b.title, 'ja'));
   
   return grouped;
 }
 
 /**
- * Get all unique categories from pages
+ * Get all unique categories from pages (fallback for compatibility)
  * @param {Array} pages - Array of page configurations
- * @returns {Array} Sorted array of unique categories
+ * @returns {Array} Array with single category
  */
 function getCategories(pages) {
-  const categories = [...new Set(pages.map(page => page.category || 'その他'))];
-  return categories.sort((a, b) => a.localeCompare(b, 'ja'));
+  // Since we no longer use categories, return a single category
+  return ['すべて'];
 }
 
 /**
