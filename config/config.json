@@ -1,23 +1,54 @@
 {
   "site": {
     "title": "社内手順書・仕様書",
-    "description": "社内向け技術文書管理システム"
+    "description": "社内向け技術文書管理システム",
+    "baseUrl": "/"
   },
   "pages": [
+    {
+      "path": "docs/README.md",
+      "title": "ドキュメント一覧",
+      "category": "概要"
+    },
+    {
+      "path": "docs/setup/environment.md",
+      "title": "開発環境セットアップ",
+      "category": "環境構築"
+    },
+    {
+      "path": "docs/setup/deployment.md",
+      "title": "デプロイメント手順",
+      "category": "環境構築"
+    },
     {
       "path": "docs/setup.md",
       "title": "環境セットアップ手順",
       "category": "環境構築"
     },
     {
-      "path": "docs/api-spec.md",
-      "title": "API仕様書",
-      "category": "仕様書"
+      "path": "docs/api/authentication.md",
+      "title": "API認証仕様",
+      "category": "API"
     },
     {
-      "path": "docs/README.md",
-      "title": "ドキュメント一覧",
-      "category": "概要"
+      "path": "docs/api/endpoints.md",
+      "title": "APIエンドポイント仕様",
+      "category": "API"
+    },
+    {
+      "path": "docs/api-spec.md",
+      "title": "API仕様書",
+      "category": "API"
+    },
+    {
+      "path": "docs/guides/troubleshooting.md",
+      "title": "トラブルシューティングガイド",
+      "category": "ガイド"
+    },
+    {
+      "path": "docs/guides/best-practices.md",
+      "title": "ベストプラクティス",
+      "category": "ガイド"
     }
   ]
 }

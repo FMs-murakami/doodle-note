@@ -96,31 +96,30 @@ async function convertMarkdownToHtml(markdownContent) {
 }
 
 /**
- * Generate navigation HTML for sidebar
+ * Generate navigation HTML for sidebar using enhanced sidebar module
  * @param {Object} groupedPages - Pages grouped by category
  * @param {string} currentPath - Current page path for highlighting
  * @returns {string} Navigation HTML
  */
 function generateNavigation(groupedPages, currentPath) {
-  let navHtml = '<nav class="sidebar-nav">\n';
+  const { generateSidebar } = require('./sidebar');
   
+  // Create a mock config object for the sidebar generator
+  const mockConfig = {
+    pages: []
+  };
+  
+  // Flatten grouped pages back to array format
   Object.keys(groupedPages).forEach(category => {
-    navHtml += `  <div class="nav-category">\n`;
-    navHtml += `    <h3 class="nav-category-title">${category}</h3>\n`;
-    navHtml += `    <ul class="nav-category-list">\n`;
-    
     groupedPages[category].forEach(page => {
-      const isActive = page.path === currentPath ? ' class="active"' : '';
-      const htmlPath = page.path.replace('.md', '.html');
-      navHtml += `      <li><a href="../${htmlPath}"${isActive}>${page.title}</a></li>\n`;
+      mockConfig.pages.push({
+        ...page,
+        category: category
+      });
     });
-    
-    navHtml += `    </ul>\n`;
-    navHtml += `  </div>\n`;
   });
   
-  navHtml += '</nav>';
-  return navHtml;
+  return generateSidebar(mockConfig, currentPath);
 }
 
 /**
