@@ -1,9 +1,9 @@
-# Docs Directory
+# ドキュメントディレクトリ
 
-This directory contains all Markdown documentation files.
+このディレクトリには、すべてのMarkdownドキュメントファイルが格納されます。
 
-## Structure
+## 構造
 
-- Place your .md files in this directory
-- Organize files by topic or department as needed
-- Update config/config.json when adding new files
+- .mdファイルをこのディレクトリに配置してください
+- 必要に応じてトピックや部署別にファイルを整理してください
+- 新しいファイルを追加する際は、config/config.jsonを更新してください

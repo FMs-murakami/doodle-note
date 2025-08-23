@@ -1,8 +1,8 @@
-// Unit tests for the internal documentation site functionality
+// 社内ドキュメントサイト機能のユニットテスト
 
-// Mock DOM elements for testing
+// テスト用のモックDOM要素
 function createMockDOM() {
-    // Create mock document structure
+    // モックドキュメント構造を作成
     const mockDocument = {
         addEventListener: function(event, callback) {
             if (event === 'DOMContentLoaded') {
@@ -68,7 +68,7 @@ function createMockDOM() {
     return mockDocument;
 }
 
-// Test Suite
+// テストスイート
 class TestSuite {
     constructor() {
         this.tests = [];
@@ -111,11 +111,11 @@ class TestSuite {
     }
 }
 
-// Initialize test suite
+// テストスイートを初期化
 const testSuite = new TestSuite();
 
-// Test 1: Configuration Structure
-testSuite.test('Config JSON structure is valid', () => {
+// テスト1: 設定構造
+testSuite.test('Config JSON構造が有効', () => {
     const configStructure = {
         site: {
             title: "社内ドキュメントサイト",
@@ -132,9 +132,9 @@ testSuite.test('Config JSON structure is valid', () => {
     testSuite.assertEqual(configStructure.site.title, '社内ドキュメントサイト', 'Site title should match');
 });
 
-// Test 2: Search Functionality
-testSuite.test('Search filtering works correctly', () => {
-    // Mock the filterContent function
+// テスト2: 検索機能
+testSuite.test('検索フィルタリングが正常に動作', () => {
+    // filterContent関数をモック
     function filterContent(query) {
         const mockCards = [
             {
@@ -165,8 +165,8 @@ testSuite.test('Search filtering works correctly', () => {
     testSuite.assertEqual(noResults[0].style.display, 'none', 'Non-matching content should be hidden');
 });
 
-// Test 3: Tag Filtering
-testSuite.test('Tag filtering works correctly', () => {
+// テスト3: タグフィルタリング
+testSuite.test('タグフィルタリングが正常に動作', () => {
     function filterByTag(tag) {
         const mockCards = [
             {
@@ -201,9 +201,9 @@ testSuite.test('Tag filtering works correctly', () => {
     testSuite.assertEqual(noResults[0].style.display, 'none', 'Cards without matching tags should be hidden');
 });
 
-// Test 4: HTML Structure Validation
-testSuite.test('HTML structure contains required elements', () => {
-    // This would normally test the actual DOM, but we'll test the structure requirements
+// テスト4: HTML構造の検証
+testSuite.test('HTML構造に必要な要素が含まれている', () => {
+    // 通常は実際のDOMをテストするが、ここでは構造要件をテスト
     const requiredElements = [
         'header',
         'nav',
@@ -214,17 +214,17 @@ testSuite.test('HTML structure contains required elements', () => {
         '.tag'
     ];
     
-    // Simulate checking for required elements
+    // 必要な要素の存在をシミュレート
     const hasRequiredElements = requiredElements.every(element => {
-        // In a real test, this would check document.querySelector(element)
-        return true; // Assuming elements exist based on our HTML structure
+        // 実際のテストでは document.querySelector(element) をチェックする
+        return true; // HTML構造に基づいて要素が存在すると仮定
     });
     
     testSuite.assert(hasRequiredElements, 'All required HTML elements should be present');
 });
 
-// Test 5: CSS Classes Validation
-testSuite.test('CSS classes are properly defined', () => {
+// テスト5: CSSクラスの検証
+testSuite.test('CSSクラスが適切に定義されている', () => {
     const requiredClasses = [
         'container',
         'content-area',
@@ -236,18 +236,18 @@ testSuite.test('CSS classes are properly defined', () => {
         'search-input'
     ];
     
-    // In a real test, this would check if CSS classes are defined
+    // 実際のテストでは、CSSクラスが定義されているかをチェックする
     const hasRequiredClasses = requiredClasses.every(className => {
-        // Simulate CSS class existence check
+        // CSSクラス存在チェックをシミュレート
         return true;
     });
     
     testSuite.assert(hasRequiredClasses, 'All required CSS classes should be defined');
 });
 
-// Test 6: Responsive Design
-testSuite.test('Responsive design breakpoints are defined', () => {
-    // Test that media queries exist for mobile devices
+// テスト6: レスポンシブデザイン
+testSuite.test('レスポンシブデザインのブレークポイントが定義されている', () => {
+    // モバイルデバイス用のメディアクエリが存在することをテスト
     const mobileBreakpoint = 768;
     const smallMobileBreakpoint = 480;
     
@@ -256,11 +256,11 @@ testSuite.test('Responsive design breakpoints are defined', () => {
     testSuite.assert(smallMobileBreakpoint < mobileBreakpoint, 'Breakpoints should be in correct order');
 });
 
-// Run all tests
+// すべてのテストを実行
 if (typeof module !== 'undefined' && module.exports) {
-    // Node.js environment
+    // Node.js環境
     module.exports = { TestSuite, testSuite };
 } else {
-    // Browser environment
+    // ブラウザ環境
     testSuite.run();
 }

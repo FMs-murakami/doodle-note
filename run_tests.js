@@ -1,15 +1,15 @@
-// Test runner for the internal documentation site
-// This file can be run with Node.js to execute the tests
+// 社内ドキュメントサイトのテストランナー
+// このファイルはNode.jsで実行してテストを実行できます
 
-// Load the test file
+// テストファイルを読み込み
 const fs = require('fs');
 const path = require('path');
 
-// Read and execute the test file
+// テストファイルを読み込んで実行
 const testFilePath = path.join(__dirname, 'test', 'test_functionality.js');
 const testCode = fs.readFileSync(testFilePath, 'utf8');
 
-// Mock console for capturing output
+// 出力をキャプチャするためのモックコンソール
 let testOutput = [];
 const originalConsoleLog = console.log;
 console.log = function(...args) {
@@ -18,18 +18,18 @@ console.log = function(...args) {
 };
 
 try {
-    // Execute the test code
+    // テストコードを実行
     eval(testCode);
     
     console.log('\n' + '='.repeat(50));
-    console.log('🎉 All tests completed successfully!');
-    console.log('The GitHub Pages setup is ready for deployment.');
+    console.log('🎉 すべてのテストが正常に完了しました！');
+    console.log('GitHub Pagesのセットアップはデプロイ準備完了です。');
     console.log('='.repeat(50));
     
 } catch (error) {
-    console.error('❌ Test execution failed:', error.message);
+    console.error('❌ テスト実行に失敗しました:', error.message);
     process.exit(1);
 }
 
-// Restore console
+// コンソールを復元
 console.log = originalConsoleLog;
