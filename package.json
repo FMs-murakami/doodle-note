@@ -1,0 +1,24 @@
+{
+  "name": "internal-docs",
+  "version": "1.0.0",
+  "description": "社内ドキュメント管理サイト - GitHub Pagesベースの社内ドキュメントサイト",
+  "main": "index.js",
+  "scripts": {
+    "build": "node scripts/build.js",
+    "dev": "node scripts/dev.js",
+    "test": "node run_tests.js"
+  },
+  "keywords": [
+    "documentation",
+    "internal",
+    "github-pages",
+    "markdown"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "marked": "^5.0.0",
+    "highlight.js": "^11.8.0",
+    "fs-extra": "^11.1.0"
+  }
+}

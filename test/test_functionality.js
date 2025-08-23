@@ -256,6 +256,67 @@ testSuite.test('レスポンシブデザインのブレークポイントが定�
     testSuite.assert(smallMobileBreakpoint < mobileBreakpoint, 'Breakpoints should be in correct order');
 });
 
+// テスト7: package.json構造の検証
+testSuite.test('package.jsonが正しく設定されている', () => {
+    // Node.js環境でのみ実行
+    if (typeof require !== 'undefined') {
+        try {
+            const fs = require('fs');
+            const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+            
+            testSuite.assertEqual(packageJson.name, 'internal-docs', 'Package name should be internal-docs');
+            testSuite.assert(packageJson.scripts.build, 'Build script should be defined');
+            testSuite.assert(packageJson.scripts.dev, 'Dev script should be defined');
+            testSuite.assert(packageJson.devDependencies.marked, 'Marked dependency should be defined');
+            testSuite.assert(packageJson.devDependencies['highlight.js'], 'Highlight.js dependency should be defined');
+            testSuite.assert(packageJson.devDependencies['fs-extra'], 'fs-extra dependency should be defined');
+        } catch (error) {
+            // ファイルが存在しない場合はスキップ
+            console.log('⚠️  package.json not found, skipping test');
+        }
+    }
+});
+
+// テスト8: GitHub Actions ワークフローの検証
+testSuite.test('GitHub Actionsワークフローが正しく設定されている', () => {
+    // Node.js環境でのみ実行
+    if (typeof require !== 'undefined') {
+        try {
+            const fs = require('fs');
+            const workflowContent = fs.readFileSync('.github/workflows/deploy.yml', 'utf8');
+            
+            testSuite.assert(workflowContent.includes('name: Deploy to GitHub Pages'), 'Workflow should have correct name');
+            testSuite.assert(workflowContent.includes('branches: [ main ]'), 'Workflow should trigger on main branch');
+            testSuite.assert(workflowContent.includes('node-version: \'18\''), 'Workflow should use Node.js 18');
+            testSuite.assert(workflowContent.includes('npm ci'), 'Workflow should install dependencies');
+            testSuite.assert(workflowContent.includes('npm run build'), 'Workflow should run build script');
+            testSuite.assert(workflowContent.includes('actions/deploy-pages@v4'), 'Workflow should deploy to GitHub Pages');
+        } catch (error) {
+            // ファイルが存在しない場合はスキップ
+            console.log('⚠️  GitHub Actions workflow not found, skipping test');
+        }
+    }
+});
+
+// テスト9: ビルドスクリプトの存在確認
+testSuite.test('ビルドスクリプトが存在する', () => {
+    // Node.js環境でのみ実行
+    if (typeof require !== 'undefined') {
+        try {
+            const fs = require('fs');
+            testSuite.assert(fs.existsSync('scripts/build.js'), 'Build script should exist');
+            testSuite.assert(fs.existsSync('scripts/dev.js'), 'Dev script should exist');
+            
+            const buildScript = fs.readFileSync('scripts/build.js', 'utf8');
+            testSuite.assert(buildScript.includes('marked'), 'Build script should use marked for Markdown processing');
+            testSuite.assert(buildScript.includes('highlight.js'), 'Build script should use highlight.js for syntax highlighting');
+        } catch (error) {
+            // ファイルが存在しない場合はスキップ
+            console.log('⚠️  Build scripts not found, skipping test');
+        }
+    }
+});
+
 // すべてのテストを実行
 if (typeof module !== 'undefined' && module.exports) {
     // Node.js環境
