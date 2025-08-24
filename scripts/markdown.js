@@ -98,14 +98,29 @@ marked.setOptions({
  * @param {string} templateName - Name of the template file
  * @returns {Promise<string>} Template content
  */
-async function loadTemplate(templateName = 'page.html') {
-  const templatePath = path.join(process.cwd(), 'templates', templateName);
+async function loadTemplate(templateName = 'page') {
+  const templatePath = path.join(process.cwd(), 'templates', `${templateName}.html`);
   
   if (!await fs.pathExists(templatePath)) {
     throw new Error(`Template not found: ${templatePath}`);
   }
   
   return await fs.readFile(templatePath, 'utf8');
+}
+
+/**
+ * Process template with variable substitution and component includes
+ */
+function processTemplate(template, variables = {}) {
+  let processed = template;
+  
+  // Replace template variables
+  Object.keys(variables).forEach(key => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    processed = processed.replace(regex, variables[key] || '');
+  });
+  
+  return processed;
 }
 
 /**
@@ -253,8 +268,12 @@ async function convertMarkdown(page, config, groupedPages) {
     // Convert markdown to HTML
     const { html, frontmatter } = await convertMarkdownToHtml(markdownContent, page.path);
     
-    // Load template
+    // Load main page template
     const template = await loadTemplate();
+    
+    // Load header and sidebar component templates
+    const headerTemplate = await loadTemplate('header');
+    const sidebarTemplate = await loadTemplate('sidebar');
     
     // Generate navigation using the full config
     const navigation = generateNavigation(config, page.path);
@@ -262,15 +281,29 @@ async function convertMarkdown(page, config, groupedPages) {
     // Calculate relative path to root for this page
     const relativePath = calculateRelativePath(page.path);
     
-    // Replace template variables
-    const finalHtml = template
-      .replace(/\{\{SITE_TITLE\}\}/g, config.site.title)
-      .replace(/\{\{SITE_DESCRIPTION\}\}/g, config.site.description)
-      .replace(/\{\{PAGE_TITLE\}\}/g, frontmatter.title || page.title)
-      .replace(/\{\{NAVIGATION\}\}/g, navigation)
-      .replace(/\{\{CONTENT\}\}/g, html)
-      .replace(/\{\{CURRENT_YEAR\}\}/g, new Date().getFullYear().toString())
-      .replace(/\{\{RELATIVE_PATH\}\}/g, relativePath);
+    // Process component templates with variables
+    const headerHtml = processTemplate(headerTemplate, {
+      RELATIVE_PATH: relativePath,
+      SITE_TITLE: config.site.title,
+      SITE_DESCRIPTION: config.site.description
+    });
+    
+    const sidebarHtml = processTemplate(sidebarTemplate, {
+      SIDEBAR_CONTENT: navigation
+    });
+    
+    // Replace template variables in main template
+    const finalHtml = processTemplate(template, {
+      SITE_TITLE: config.site.title,
+      SITE_DESCRIPTION: config.site.description,
+      PAGE_TITLE: frontmatter.title || page.title,
+      HEADER_COMPONENT: headerHtml,
+      SIDEBAR_COMPONENT: sidebarHtml,
+      NAVIGATION: navigation,
+      CONTENT: html,
+      CURRENT_YEAR: new Date().getFullYear().toString(),
+      RELATIVE_PATH: relativePath
+    });
     
     return finalHtml;
     

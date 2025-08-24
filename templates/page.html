@@ -19,34 +19,11 @@
     <link rel="icon" type="image/x-icon" href="{{RELATIVE_PATH}}assets/favicon.ico">
 </head>
 <body>
-    <!-- Header -->
-    <header class="site-header">
-        <div class="container">
-            <div class="header-content">
-                <h1 class="site-title">
-                    <a href="{{RELATIVE_PATH}}index.html">{{SITE_TITLE}}</a>
-                </h1>
-                <p class="site-description">{{SITE_DESCRIPTION}}</p>
-            </div>
-            <nav class="header-nav">
-                <a href="{{RELATIVE_PATH}}index.html" class="nav-link">ホーム</a>
-                <a href="#" class="nav-link" onclick="toggleSidebar()">メニュー</a>
-            </nav>
-        </div>
-    </header>
+    {{HEADER_COMPONENT}}
 
     <!-- Main Layout -->
     <div class="main-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h2>ドキュメント一覧</h2>
-                <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
-            </div>
-            <div class="sidebar-content">
-                {{NAVIGATION}}
-            </div>
-        </aside>
+        {{SIDEBAR_COMPONENT}}
 
         <!-- Main Content -->
         <main class="main-content">

@@ -13,6 +13,32 @@ const { convertMarkdown } = require('./markdown');
 const outputDir = process.env.OUTPUT_DIR || 'dist';
 
 /**
+ * Load and process template components
+ */
+async function loadTemplate(templateName) {
+  const templatePath = path.join('templates', `${templateName}.html`);
+  if (await fs.pathExists(templatePath)) {
+    return await fs.readFile(templatePath, 'utf8');
+  }
+  throw new Error(`Template not found: ${templatePath}`);
+}
+
+/**
+ * Process template with variable substitution and component includes
+ */
+function processTemplate(template, variables = {}) {
+  let processed = template;
+  
+  // Replace template variables
+  Object.keys(variables).forEach(key => {
+    const regex = new RegExp(`{{${key}}}`, 'g');
+    processed = processed.replace(regex, variables[key] || '');
+  });
+  
+  return processed;
+}
+
+/**
  * Generate config.json from config.yaml for client-side consumption
  */
 async function generateConfigJson(config) {
@@ -40,11 +66,12 @@ async function copyStaticFiles() {
     await fs.copy('assets', path.join(outputDir, 'assets'));
   }
   
-  // Copy docs directory (for images and other assets)
+  // Copy docs directory (for images and other assets, excluding .md)
   if (await fs.pathExists('docs')) {
-    await fs.copy('docs', path.join(outputDir, 'docs'));
+    await fs.copy('docs', path.join(outputDir, 'docs'), {
+      filter: (src) => !src.endsWith('.md')
+    });
   }
-  
   // Note: config directory is handled separately by generateConfigJson()
   // to convert YAML to JSON for client-side consumption
   
@@ -63,13 +90,28 @@ async function copyStaticFiles() {
 }
 
 /**
- * Generate index page HTML with sidebar and header layout
+ * Generate index page HTML with sidebar and header layout using templates
  */
 async function generateIndex(config) {
   console.log('📄 Generating index page...');
   
   const { generateEnhancedSidebar } = require('./sidebar');
   const sidebarHtml = generateEnhancedSidebar(config, null, true);
+  
+  // Load header and sidebar templates (use special index sidebar)
+  const headerTemplate = await loadTemplate('header');
+  const sidebarTemplate = await loadTemplate('sidebar-index');
+  
+  // Process templates with variables
+  const headerHtml = processTemplate(headerTemplate, {
+    RELATIVE_PATH: '',
+    SITE_TITLE: config.site.title,
+    SITE_DESCRIPTION: config.site.description
+  });
+  
+  const sidebarHtmlProcessed = processTemplate(sidebarTemplate, {
+    SIDEBAR_CONTENT: sidebarHtml
+  });
   
   let indexHtml = `<!DOCTYPE html>
 <html lang="ja">
@@ -92,49 +134,79 @@ async function generateIndex(config) {
     <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
 </head>
 <body>
-    <!-- Header -->
-    <header class="site-header">
-        <div class="container">
-            <div class="header-content">
-                <h1 class="site-title">
-                    <a href="index.html">${config.site.title}</a>
-                </h1>
-                <p class="site-description">${config.site.description}</p>
-            </div>
-            <nav class="header-nav">
-                <a href="index.html" class="nav-link">ホーム</a>
-                <a href="#" class="nav-link" onclick="toggleSidebar()">メニュー</a>
-            </nav>
-        </div>
-    </header>
+    ${headerHtml}
 
     <!-- Main Layout -->
     <div class="main-layout">
-        <!-- Sidebar -->
-        <aside class="sidebar" id="sidebar">
-            <div class="sidebar-header">
-                <h2>ドキュメント一覧</h2>
-                <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
-            </div>
-            <div class="sidebar-content">
-                ${sidebarHtml}
-            </div>
-        </aside>
+        ${sidebarHtmlProcessed}
 
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-wrapper">
                 <!-- Page Content -->
                 <article class="page-content">
+                    <header class="page-header">
+                        <h1 class="page-title">ドキュメント一覧</h1>
+                    </header>
+                    
                     <div class="content-area">
                         <div class="index-content">
                             <div class="welcome-section">
                                 <h2>社内技術文書管理システム</h2>
-                                <p>左側のサイドバーから各ドキュメントにアクセスできます。検索機能を使用してページタイトルで絞り込むことも可能です。</p>
+                                <p>左側のサイドバーから各カテゴリのドキュメントにアクセスできます。検索機能を使用してページタイトルで絞り込むことも可能です。</p>
                             </div>
                             
-                            <div class="pages-grid" id="pages-grid">
-                                <!-- Pages will be generated by JavaScript -->
+                            <div class="page-addition-guide">
+                                <h2>📝 新しいページの追加手順</h2>
+                                <p>このサイトに新しいドキュメントページを追加する方法を説明します。</p>
+                                
+                                <h3>1. Markdownファイルの作成</h3>
+                                <p>適切なディレクトリにMarkdownファイル（.md）を作成します：</p>
+                                <ul>
+                                    <li><strong>API関連:</strong> <code>docs/api/</code> ディレクトリ</li>
+                                    <li><strong>ガイド:</strong> <code>docs/guides/</code> ディレクトリ</li>
+                                    <li><strong>セットアップ:</strong> <code>docs/setup/</code> ディレクトリ</li>
+                                </ul>
+                                
+                                <h3>2. ファイル形式</h3>
+                                <p>Markdownファイルの先頭にフロントマターを追加してください：</p>
+                                <pre><code>---
+title: ページタイトル
+category: カテゴリ名
+---
+
+# ページタイトル
+
+ここにコンテンツを記述します。</code></pre>
+                                
+                                <h3>3. 設定ファイルの更新</h3>
+                                <p><code>config/config.yaml</code> ファイルの <code>pages</code> 配列に新しいページを追加します：</p>
+                                <pre><code>- title: "ページタイトル"
+  path: "docs/category/filename.md"
+  category: "カテゴリ名"</code></pre>
+                                
+                                <h3>4. ビルドとデプロイ</h3>
+                                <p>変更をコミットしてプッシュすると、GitHub Actionsが自動的にサイトをビルド・デプロイします：</p>
+                                <pre><code>git add .
+git commit -m "新しいページを追加: ページタイトル"
+git push origin main</code></pre>
+                                
+                                <h3>5. 確認事項</h3>
+                                <ul>
+                                    <li>ファイル名は英数字とハイフンのみ使用</li>
+                                    <li>カテゴリ名は既存のものを使用するか、新規作成</li>
+                                    <li>画像ファイルは <code>assets/images/</code> に配置</li>
+                                    <li>コードブロックには適切な言語指定を追加</li>
+                                </ul>
+                                
+                                <div class="note-box">
+                                    <h4>💡 ヒント</h4>
+                                    <p>既存のページを参考にして、同じ形式でファイルを作成することをお勧めします。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="categories-grid" id="categories-grid">
+                                <!-- Categories will be generated by JavaScript -->
                             </div>
                         </div>
                     </div>
@@ -142,16 +214,6 @@ async function generateIndex(config) {
             </div>
         </main>
     </div>
-
-    <!-- Footer -->
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-content">
-                <p>&copy; ${new Date().getFullYear()} ${config.site.title}. All rights reserved.</p>
-                <p class="footer-note">社内向け技術文書管理システム</p>
-            </div>
-        </div>
-    </footer>
 
     <!-- JavaScript -->
     <script src="assets/js/main.js"></script>
