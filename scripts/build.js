@@ -145,6 +145,136 @@ async function generateIndex(config) {
 }
 
 /**
+ * Generate category-specific index pages
+ */
+async function generateCategoryIndexes(config) {
+  console.log('📑 Generating category index pages...');
+  
+  const { generateEnhancedSidebar } = require('./sidebar');
+  const groupedPages = groupPagesByCategory(config.pages);
+  const categories = getCategories(config.pages);
+  
+  for (const category of categories) {
+    // Skip the main "すべて" category as it's handled by the main index
+    if (category === 'すべて') {
+      continue;
+    }
+    
+    const categoryPages = groupedPages[category] || [];
+    const sidebarHtml = generateEnhancedSidebar(config, null, true);
+    
+    // Generate category-specific content
+    const categoryContent = categoryPages.map(page => `
+      <div class="page-card">
+        <h3><a href="${page.path.replace('.md', '.html')}">${page.title}</a></h3>
+        <p class="page-path">${page.path}</p>
+      </div>
+    `).join('');
+    
+    const categoryIndexHtml = `<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${category} - ${config.site.title}</title>
+    <meta name="description" content="${config.site.description}">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="assets/css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="assets/favicon.ico">
+</head>
+<body>
+    <!-- Header -->
+    <header class="site-header">
+        <div class="container">
+            <div class="header-content">
+                <h1 class="site-title">
+                    <a href="index.html">${config.site.title}</a>
+                </h1>
+                <p class="site-description">${config.site.description}</p>
+            </div>
+            <nav class="header-nav">
+                <a href="index.html" class="nav-link">ホーム</a>
+                <a href="#" class="nav-link" onclick="toggleSidebar()">メニュー</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Layout -->
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <h2>ドキュメント一覧</h2>
+                <button class="sidebar-close" onclick="toggleSidebar()">&times;</button>
+            </div>
+            <div class="sidebar-content">
+                ${sidebarHtml}
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <div class="content-wrapper">
+                <!-- Page Content -->
+                <article class="page-content">
+                    <header class="page-header">
+                        <h1 class="page-title">${category}</h1>
+                    </header>
+                    
+                    <div class="content-area">
+                        <div class="category-content">
+                            <div class="category-description">
+                                <p>${category}カテゴリのドキュメント一覧です。</p>
+                            </div>
+                            
+                            <div class="pages-grid">
+                                ${categoryContent}
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </div>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; ${new Date().getFullYear()} ${config.site.title}. All rights reserved.</p>
+                <p class="footer-note">社内向け技術文書管理システム</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="assets/js/main.js"></script>
+    <script src="assets/js/sidebar.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+    <script>
+        // Initialize syntax highlighting
+        hljs.highlightAll();
+    </script>
+</body>
+</html>`;
+
+    // Save category index page
+    const categoryFileName = `category-${category.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html`;
+    await fs.writeFile(path.join('dist', categoryFileName), categoryIndexHtml);
+    console.log(`✅ Generated category index: ${categoryFileName}`);
+  }
+}
+
+/**
  * Main build function
  */
 async function build() {
@@ -184,6 +314,9 @@ async function build() {
     
     // 6. Generate index page
     await generateIndex(config);
+    
+    // 7. Generate category index pages
+    await generateCategoryIndexes(config);
     
     console.log('🎉 Build completed successfully!');
     console.log('📂 Output directory: ./dist');
