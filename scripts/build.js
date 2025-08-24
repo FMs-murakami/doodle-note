@@ -168,99 +168,39 @@ async function generateIndex(config) {
 }
 
 /**
- * Generate category-specific index pages for hierarchical navigation
+ * Generate category-specific index pages
  */
 async function generateCategoryIndexes(config) {
   console.log('📑 Generating category index pages...');
   
-  const { generateEnhancedSidebar, generateCategoryUrl } = require('./sidebar');
-  const { getCategoryContents } = require('./config');
+  const { generateEnhancedSidebar } = require('./sidebar');
+  const groupedPages = groupPagesByCategory(config.pages);
+  const categories = getCategories(config.pages);
   
-  // Get all possible category paths
-  const categoryPaths = getAllCategoryPaths(config.pages);
-  
-  for (const categoryPath of categoryPaths) {
-    const categoryContents = getCategoryContents(config.pages, categoryPath);
-    const sidebarHtml = generateEnhancedSidebar(config, null, true);
+  for (const category of categories) {
+    // Skip the main "すべて" category as it's handled by the main index
+    if (category === 'すべて') {
+      continue;
+    }
     
-    // Generate category title and breadcrumb
-    const categoryTitle = categoryPath.length > 0 ? categoryPath.join(' / ') : 'すべて';
-    const categorySlug = categoryPath.join('-').toLowerCase().replace(/[^a-z0-9\-]/g, '-');
+    const categoryPages = groupedPages[category] || [];
+    const sidebarHtml = generateEnhancedSidebar(config, null, true);
     
     // Generate category-specific content
     const { getPageUrl } = require('./sidebar');
-    
-    let categoryContent = '';
-    
-    // Add subcategories section
-    if (categoryContents.subcategories.length > 0) {
-      categoryContent += '<div class="subcategories-section">\n';
-      categoryContent += '<h3>サブカテゴリ</h3>\n';
-      categoryContent += '<div class="subcategories-grid">\n';
-      
-      categoryContents.subcategories.forEach(subcat => {
-        const subcatPath = [...categoryPath, subcat.category];
-        const subcatUrl = generateCategoryUrl(subcatPath, config.site.baseUrl || '/');
-        categoryContent += `
-          <div class="category-card">
-            <h4><a href="${subcatUrl}">${subcat.category}</a></h4>
-            <p class="category-count">${subcat.pageCount}件のドキュメント</p>
-          </div>
-        `;
-      });
-      
-      categoryContent += '</div>\n';
-      categoryContent += '</div>\n';
-    }
-    
-    // Add pages section
-    if (categoryContents.pages.length > 0) {
-      categoryContent += '<div class="pages-section">\n';
-      categoryContent += '<h3>ドキュメント</h3>\n';
-      categoryContent += '<div class="pages-grid">\n';
-      
-      categoryContents.pages.forEach(page => {
-        const pageUrl = getPageUrl(page, '', config);
-        categoryContent += `
-          <div class="page-card">
-            <h4><a href="/doodle-note/${pageUrl}">${page.title}</a></h4>
-            <p class="page-path">${page.path}</p>
-          </div>
-        `;
-      });
-      
-      categoryContent += '</div>\n';
-      categoryContent += '</div>\n';
-    }
-    
-    // Generate breadcrumb for category page
-    let breadcrumbHtml = '<nav class="breadcrumb" aria-label="パンくずナビゲーション">\n';
-    const baseUrl = config.site.baseUrl || '/';
-    const indexPath = baseUrl + 'index.html';
-    breadcrumbHtml += `  <a href="${indexPath}">ホーム</a>\n`;
-    
-    for (let i = 0; i < categoryPath.length; i++) {
-      const partialPath = categoryPath.slice(0, i + 1);
-      const isLast = i === categoryPath.length - 1;
-      
-      breadcrumbHtml += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
-      
-      if (isLast) {
-        breadcrumbHtml += `  <span class="breadcrumb-current" aria-current="page">${categoryPath[i]}</span>\n`;
-      } else {
-        const partialUrl = generateCategoryUrl(partialPath, baseUrl);
-        breadcrumbHtml += `  <a href="${partialUrl}">${categoryPath[i]}</a>\n`;
-      }
-    }
-    
-    breadcrumbHtml += '</nav>\n';
+    const categoryContent = categoryPages.map(page => `
+      <div class="page-card">
+        <h3><a href="${getPageUrl(page, '', config)}">${page.title}</a></h3>
+        <p class="page-path">${page.path}</p>
+      </div>
+    `).join('');
     
     const categoryIndexHtml = `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>${categoryTitle} - ${config.site.title}</title>
+    <title>${category} - ${config.site.title}</title>
     <meta name="description" content="${config.site.description}">
     
     <!-- CSS -->
@@ -308,30 +248,33 @@ async function generateCategoryIndexes(config) {
         <!-- Main Content -->
         <main class="main-content">
             <div class="content-wrapper">
-                <!-- Breadcrumb -->
-                ${breadcrumbHtml}
-
                 <!-- Page Content -->
                 <article class="page-content">
-                    <header class="page-header">
-                        <h1 class="page-title">${categoryTitle}</h1>
-                    </header>
                     <div class="content-area">
                         <div class="category-content">
-                            ${categoryContent}
+                            <div class="category-description">
+                                <p>${category}カテゴリのドキュメント一覧です。</p>
+                            </div>
+                            
+                            <div class="pages-grid">
+                                ${categoryContent}
+                            </div>
                         </div>
                     </div>
                 </article>
-
-                <!-- Page Navigation -->
-                <nav class="page-navigation">
-                    <a href="index.html" class="nav-button nav-button-back">
-                        ← ドキュメント一覧に戻る
-                    </a>
-                </nav>
             </div>
         </main>
     </div>
+
+    <!-- Footer -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="footer-content">
+                <p>&copy; ${new Date().getFullYear()} ${config.site.title}. All rights reserved.</p>
+                <p class="footer-note">社内向け技術文書管理システム</p>
+            </div>
+        </div>
+    </footer>
 
     <!-- JavaScript -->
     <script src="assets/js/main.js"></script>
@@ -345,39 +288,10 @@ async function generateCategoryIndexes(config) {
 </html>`;
 
     // Save category index page
-    const categoryFileName = categoryPath.length > 0 
-      ? `category-${categorySlug}.html`
-      : 'category-all.html';
-    
+    const categoryFileName = `category-${category.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html`;
     await fs.writeFile(path.join(outputDir, categoryFileName), categoryIndexHtml);
-    console.log(`✅ Generated category index: ${categoryFileName} (${categoryTitle})`);
+    console.log(`✅ Generated category index: ${categoryFileName}`);
   }
-}
-
-/**
- * Get all possible category paths from hierarchical structure
- * @param {Array} pages - Hierarchical pages array
- * @returns {Array} Array of category path arrays
- */
-function getAllCategoryPaths(pages) {
-  const paths = [];
-  
-  function extractPaths(pageArray, currentPath = []) {
-    // Add current path if it's not empty (root level)
-    if (currentPath.length > 0) {
-      paths.push([...currentPath]);
-    }
-    
-    for (const item of pageArray) {
-      if (item.category && item.pages) {
-        const newPath = [...currentPath, item.category];
-        extractPaths(item.pages, newPath);
-      }
-    }
-  }
-  
-  extractPaths(pages);
-  return paths;
 }
 
 /**

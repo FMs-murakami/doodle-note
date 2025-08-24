@@ -146,9 +146,6 @@ class SidebarManager {
    * @param {HTMLDetailsElement} details - Details element
    */
   handleCategoryToggle(details) {
-    // Mark that user has interacted with categories
-    sessionStorage.setItem('hasUserInteraction', 'true');
-    
     // Store state in sessionStorage for persistence during navigation
     const categoryId = details.getAttribute('data-category');
     if (categoryId) {
@@ -457,19 +454,15 @@ class SidebarManager {
   }
   
   /**
-   * Handle initial state based on screen size and page context
+   * Handle initial state based on screen size
    */
   handleInitialState() {
     if (window.innerWidth <= 1024) {
       this.close();
     }
     
-    // Don't restore expanded state automatically - let server-side generation handle it
-    // Only restore if user has manually expanded categories during this session
-    const hasUserInteraction = sessionStorage.getItem('hasUserInteraction');
-    if (hasUserInteraction === 'true') {
-      this.restoreExpandedState();
-    }
+    // Restore expanded state from sessionStorage
+    this.restoreExpandedState();
   }
   
   /**
