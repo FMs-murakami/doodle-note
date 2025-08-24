@@ -1,5 +1,5 @@
 // Test build to see output structure
-const { build } = require('./scripts/build.js');
+const { build } = require('../scripts/build.js');
 
 async function testBuild() {
   try {

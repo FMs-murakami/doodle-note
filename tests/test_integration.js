@@ -6,7 +6,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const { build } = require('./scripts/build');
+const { build } = require('../scripts/build');
 
 /**
  * Parse HTML and extract links from sidebar

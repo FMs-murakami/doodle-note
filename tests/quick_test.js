@@ -1,5 +1,5 @@
 // Quick verification of the URL generation fix
-const { getPageUrl } = require('./scripts/sidebar');
+const { getPageUrl } = require('../scripts/sidebar');
 
 console.log('🔍 Quick URL Generation Verification\n');
 

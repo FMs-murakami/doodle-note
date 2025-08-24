@@ -6,8 +6,8 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const { getPageUrl, generateBreadcrumb } = require('./scripts/sidebar');
-const { build } = require('./scripts/build');
+const { getPageUrl, generateBreadcrumb } = require('../scripts/sidebar');
+const { build } = require('../scripts/build');
 
 /**
  * Test URL generation functionality

@@ -1,5 +1,5 @@
 // Test URL generation
-const { getPageUrl } = require('./scripts/sidebar');
+const { getPageUrl } = require('../scripts/sidebar');
 
 // Test cases
 const testCases = [

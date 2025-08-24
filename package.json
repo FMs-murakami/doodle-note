@@ -6,9 +6,9 @@
   "scripts": {
     "build": "node scripts/build.js",
     "dev": "node scripts/dev.js",
-    "test": "node run_tests.js",
-    "test:integration": "node test_integration.js",
-    "test:urls": "node test_urls.js"
+    "test": "node tests/run_tests.js",
+    "test:integration": "node tests/test_integration.js",
+    "test:urls": "node tests/test_urls.js"
   },
   "keywords": [
     "documentation",
