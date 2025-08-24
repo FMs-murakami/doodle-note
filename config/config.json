@@ -10,6 +10,24 @@
       "title": "README"
     },
     {
+      "category": "成果報告会",
+      "pages": [
+        {
+        "category": "mm",
+        "pages":[
+            {
+              "path": "docs/test/20230414_mm.md",
+              "title": "2023/04/14"
+            },
+            {
+              "path": "docs/test/20230421_mm.md",
+              "title": "2023/04/21"
+            }
+          ]
+        }
+      ]
+    },
+    {
       "category": "開発関連",
       "pages": [
         {
