@@ -58,7 +58,7 @@ function generateSidebar(config, currentPage) {
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
       
       html += '  <div class="nav-item">\n';
-      html += `    <a href="/${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
+      html += `    <a href="/doodle-note/${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
       html += '  </div>\n';
     } else if (item.category && item.pages) {
       // This is a category with pages
@@ -101,7 +101,7 @@ function generateCategorySection(category, currentPage, level = 0, config) {
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
       
       html += '      <li>\n';
-      html += `        <a href="/${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
+      html += `        <a href="/doodle-note/${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
       html += '      </li>\n';
     } else if (item.category && item.pages) {
       // Nested category
