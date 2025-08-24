@@ -96,7 +96,9 @@ function testSidebarGeneration() {
     const checks = [
       { test: sidebarHtml.includes('nav class="sidebar-nav"'), desc: 'Contains nav element' },
       { test: sidebarHtml.includes('data-category'), desc: 'Contains data-category attributes' },
-      { test: sidebarHtml.includes('nav-category-toggle'), desc: 'Contains toggle buttons' },
+      { test: sidebarHtml.includes('<details'), desc: 'Contains details elements' },
+      { test: sidebarHtml.includes('<summary'), desc: 'Contains summary elements' },
+      { test: sidebarHtml.includes('nav-category-summary'), desc: 'Contains summary class' },
       { test: sidebarHtml.includes('Test Category'), desc: 'Contains category names' },
       { test: sidebarHtml.includes('Test Page 1'), desc: 'Contains page titles' },
       { test: !sidebarHtml.includes('onclick='), desc: 'No onclick handlers' }

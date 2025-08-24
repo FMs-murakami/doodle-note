@@ -140,17 +140,17 @@ function generateSidebarNavigation() {
     navigationContainer.innerHTML = navigationHTML;
 }
 
-// Generate a category section with collapsible functionality (matching server-side)
+// Generate a category section with collapsible functionality using details/summary
 function generateCategorySection(category, level = 0) {
     const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
     const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
     
     let html = `
-        <div class="nav-category${levelClass}" data-category="${categoryId}">
-            <button class="nav-category-toggle" aria-expanded="true">
+        <details class="nav-category${levelClass}" data-category="${categoryId}" open>
+            <summary class="nav-category-summary">
                 <h3 class="nav-category-title">${category.category}</h3>
                 <span class="nav-category-icon">▼</span>
-            </button>
+            </summary>
             <ul class="nav-category-list">
     `;
     
@@ -172,7 +172,7 @@ function generateCategorySection(category, level = 0) {
     
     html += `
             </ul>
-        </div>
+        </details>
     `;
     
     return html;

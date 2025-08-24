@@ -83,7 +83,7 @@ function generateSidebar(config, currentPage) {
 }
 
 /**
- * Generate a category section with collapsible functionality
+ * Generate a category section with collapsible functionality using details/summary
  * @param {Object} category - Category object with pages
  * @param {string} currentPage - Current page path
  * @param {number} level - Nesting level (0 = top level)
@@ -92,14 +92,14 @@ function generateSidebar(config, currentPage) {
 function generateCategorySection(category, currentPage, level = 0) {
   const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const hasActiveChild = hasActivePage(category.pages, currentPage);
-  const expandedClass = hasActiveChild ? ' expanded' : '';
+  const openAttribute = hasActiveChild ? ' open' : '';
   const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
   
-  let html = `  <div class="nav-category${expandedClass}${levelClass}" data-category="${categoryId}">\n`;
-  html += `    <button class="nav-category-toggle" aria-expanded="${hasActiveChild}">\n`;
+  let html = `  <details class="nav-category${levelClass}" data-category="${categoryId}"${openAttribute}>\n`;
+  html += `    <summary class="nav-category-summary">\n`;
   html += `      <h3 class="nav-category-title">${category.category}</h3>\n`;
   html += '      <span class="nav-category-icon">▼</span>\n';
-  html += '    </button>\n';
+  html += '    </summary>\n';
   html += '    <ul class="nav-category-list">\n';
   
   // Process pages in this category
@@ -121,7 +121,7 @@ function generateCategorySection(category, currentPage, level = 0) {
   });
   
   html += '    </ul>\n';
-  html += '  </div>\n';
+  html += '  </details>\n';
   
   return html;
 }

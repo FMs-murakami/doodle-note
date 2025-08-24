@@ -40,12 +40,14 @@ async function testHierarchicalConfig() {
     
     // 5. Check for hierarchical structure in HTML
     const hasCategories = sidebarHtml.includes('nav-category');
-    const hasToggleButtons = sidebarHtml.includes('nav-category-toggle');
+    const hasDetailsElements = sidebarHtml.includes('<details');
+    const hasSummaryElements = sidebarHtml.includes('<summary');
     const hasNestedStructure = sidebarHtml.includes('nav-category-level-');
     
     console.log('🔍 Sidebar structure analysis:');
     console.log(`   - Has categories: ${hasCategories ? '✅' : '❌'}`);
-    console.log(`   - Has toggle buttons: ${hasToggleButtons ? '✅' : '❌'}`);
+    console.log(`   - Has details elements: ${hasDetailsElements ? '✅' : '❌'}`);
+    console.log(`   - Has summary elements: ${hasSummaryElements ? '✅' : '❌'}`);
     console.log(`   - Has nested structure: ${hasNestedStructure ? '✅' : '❌'}`);
     
     console.log('\n🎉 All tests passed! Hierarchical configuration is working correctly.');

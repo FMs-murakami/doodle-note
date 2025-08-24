@@ -120,50 +120,52 @@ class SidebarManager {
    * Initialize category toggle functionality
    */
   initializeCategoryToggles() {
-    const categoryToggles = this.sidebar.querySelectorAll('.nav-category-toggle');
+    const categoryDetails = this.sidebar.querySelectorAll('.nav-category');
     
-    categoryToggles.forEach(toggle => {
-      toggle.addEventListener('click', (e) => {
-        e.preventDefault();
-        this.toggleCategory(toggle);
+    categoryDetails.forEach(details => {
+      details.addEventListener('toggle', (e) => {
+        this.handleCategoryToggle(details);
       });
       
-      // Handle keyboard navigation
-      toggle.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          this.toggleCategory(toggle);
-        }
-      });
+      // Handle keyboard navigation on summary
+      const summary = details.querySelector('.nav-category-summary');
+      if (summary) {
+        summary.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            details.open = !details.open;
+          }
+        });
+      }
     });
   }
   
   /**
-   * Toggle category expand/collapse
-   * @param {HTMLElement} toggle - Toggle button element
+   * Handle category toggle event
+   * @param {HTMLDetailsElement} details - Details element
    */
-  toggleCategory(toggle) {
-    const category = toggle.closest('.nav-category');
-    const isExpanded = category.classList.contains('expanded');
-    
-    if (isExpanded) {
-      category.classList.remove('expanded');
-      toggle.setAttribute('aria-expanded', 'false');
-    } else {
-      category.classList.add('expanded');
-      toggle.setAttribute('aria-expanded', 'true');
-    }
-    
+  handleCategoryToggle(details) {
     // Store state in sessionStorage for persistence during navigation
-    const categoryId = category.getAttribute('data-category');
+    const categoryId = details.getAttribute('data-category');
     if (categoryId) {
       const expandedCategories = this.getExpandedCategories();
-      if (isExpanded) {
-        expandedCategories.delete(categoryId);
-      } else {
+      if (details.open) {
         expandedCategories.add(categoryId);
+      } else {
+        expandedCategories.delete(categoryId);
       }
       this.saveExpandedCategories(expandedCategories);
+    }
+  }
+  
+  /**
+   * Toggle category expand/collapse (legacy method for compatibility)
+   * @param {HTMLElement} toggle - Toggle element (now summary)
+   */
+  toggleCategory(toggle) {
+    const details = toggle.closest('.nav-category');
+    if (details) {
+      details.open = !details.open;
     }
   }
   
@@ -191,12 +193,10 @@ class SidebarManager {
     const expandedCategories = this.getExpandedCategories();
     
     expandedCategories.forEach(categoryId => {
-      const category = this.sidebar.querySelector(`[data-category="${categoryId}"]`);
-      const toggle = category?.querySelector('.nav-category-toggle');
+      const details = this.sidebar.querySelector(`[data-category="${categoryId}"]`);
       
-      if (category && toggle && !category.classList.contains('expanded')) {
-        category.classList.add('expanded');
-        toggle.setAttribute('aria-expanded', 'true');
+      if (details && !details.open) {
+        details.open = true;
       }
     });
   }
@@ -339,16 +339,12 @@ class SidebarManager {
    */
   showAllCategories() {
     const categories = this.sidebar.querySelectorAll('.nav-category');
-    categories.forEach(category => {
-      category.style.display = 'flex';
+    categories.forEach(details => {
+      details.style.display = 'block';
       // Temporarily expand all categories for search visibility
-      if (!category.classList.contains('expanded')) {
-        category.classList.add('search-expanded');
-        category.classList.add('expanded');
-        const toggle = category.querySelector('.nav-category-toggle');
-        if (toggle) {
-          toggle.setAttribute('aria-expanded', 'true');
-        }
+      if (!details.open) {
+        details.setAttribute('data-search-expanded', 'true');
+        details.open = true;
       }
     });
   }
@@ -358,8 +354,8 @@ class SidebarManager {
    */
   hideAllCategories() {
     const categories = this.sidebar.querySelectorAll('.nav-category');
-    categories.forEach(category => {
-      category.style.display = 'none';
+    categories.forEach(details => {
+      details.style.display = 'none';
     });
   }
   
@@ -368,16 +364,12 @@ class SidebarManager {
    */
   restoreCategoriesAfterSearch() {
     const categories = this.sidebar.querySelectorAll('.nav-category');
-    categories.forEach(category => {
-      category.style.display = 'flex';
+    categories.forEach(details => {
+      details.style.display = 'block';
       // Remove temporary search expansion
-      if (category.classList.contains('search-expanded')) {
-        category.classList.remove('search-expanded');
-        category.classList.remove('expanded');
-        const toggle = category.querySelector('.nav-category-toggle');
-        if (toggle) {
-          toggle.setAttribute('aria-expanded', 'false');
-        }
+      if (details.hasAttribute('data-search-expanded')) {
+        details.removeAttribute('data-search-expanded');
+        details.open = false;
       }
     });
     
@@ -501,10 +493,9 @@ window.toggleSidebar = function() {
 // Global function for category toggling (called from HTML onclick)
 window.toggleCategory = function(categoryId) {
   if (window.sidebarManager) {
-    const category = document.getElementById(categoryId);
-    const toggle = category?.parentElement.querySelector('.nav-category-toggle');
-    if (toggle) {
-      window.sidebarManager.toggleCategory(toggle);
+    const details = document.querySelector(`[data-category="${categoryId}"]`);
+    if (details) {
+      details.open = !details.open;
     }
   }
 };

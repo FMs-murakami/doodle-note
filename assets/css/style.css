@@ -301,9 +301,7 @@ body {
 }
 
 .nav-category {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
+  display: block;
   border-bottom: 1px solid var(--border-light);
   margin-bottom: 0.5rem;
 }
@@ -321,31 +319,32 @@ body {
   margin-bottom: 0.25rem;
 }
 
-.nav-category-header {
-  display: flex;
-  align-items: center;
-  width: 100%;
-}
-
-.nav-category-toggle {
+.nav-category-summary {
   display: flex;
   align-items: center;
   justify-content: flex-start;
   width: 100%;
   padding: 0.75rem 0.5rem;
-  background: none;
-  border: none;
   cursor: pointer;
   transition: background-color var(--transition-fast);
   border-radius: var(--radius-md);
   gap: 0.5rem;
+  list-style: none;
 }
 
-.nav-category-toggle:hover {
+.nav-category-summary::-webkit-details-marker {
+  display: none;
+}
+
+.nav-category-summary::marker {
+  display: none;
+}
+
+.nav-category-summary:hover {
   background-color: var(--border-light);
 }
 
-.nav-category-toggle:focus {
+.nav-category-summary:focus {
   outline: 2px solid var(--primary-color);
   outline-offset: 2px;
 }
@@ -358,6 +357,7 @@ body {
   letter-spacing: 0.05em;
   margin: 0;
   text-align: left;
+  flex-grow: 1;
 }
 
 /* Nested category titles */
@@ -379,12 +379,12 @@ body {
   font-size: 0.75rem;
   color: var(--text-secondary);
   transition: transform var(--transition-normal);
-  transform: rotate(0deg);
+  transform: rotate(-90deg);
   flex-shrink: 0;
 }
 
-.nav-category.expanded .nav-category-icon {
-  transform: rotate(90deg);
+.nav-category[open] .nav-category-icon {
+  transform: rotate(0deg);
 }
 
 .nav-category-list {
@@ -392,16 +392,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height var(--transition-normal) ease-out;
-  padding: 0 0.5rem;
-}
-
-.nav-category.expanded .nav-category-list {
-  max-height: 1000px;
   padding: 0.5rem 0.5rem 1rem;
-  transition: max-height var(--transition-normal) ease-in;
+  margin: 0;
 }
 
 /* Navigation items (both in categories and standalone) */
