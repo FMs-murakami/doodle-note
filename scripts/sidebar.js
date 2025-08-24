@@ -15,13 +15,40 @@ const path = require('path');
 function getPageUrl(page, currentPath = '') {
   const htmlPath = page.path.replace('.md', '.html');
   
-  // If we're in a subdirectory, we need to go up
-  const currentDir = path.dirname(currentPath);
-  if (currentDir && currentDir !== '.') {
-    return '../' + htmlPath;
+  // If no current path, return the HTML path as-is
+  if (!currentPath) {
+    return htmlPath;
   }
   
-  return htmlPath;
+  // Calculate relative path from current page to target page
+  const currentDir = path.dirname(currentPath);
+  const targetDir = path.dirname(htmlPath);
+  const targetFile = path.basename(htmlPath);
+  
+  // If both pages are in the same directory
+  if (currentDir === targetDir) {
+    return targetFile;
+  }
+  
+  // Calculate how many levels up we need to go from current directory
+  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
+  const targetDepth = targetDir === '.' ? 0 : targetDir.split('/').length;
+  
+  // Build relative path
+  let relativePath = '';
+  
+  // Go up from current directory to root
+  if (currentDepth > 0) {
+    relativePath = '../'.repeat(currentDepth);
+  }
+  
+  // Navigate to target directory and file
+  if (targetDir !== '.') {
+    relativePath += targetDir + '/';
+  }
+  relativePath += targetFile;
+  
+  return relativePath;
 }
 
 /**
@@ -91,8 +118,13 @@ function generateEnhancedSidebar(config, currentPage, includeSearch = true) {
  * @returns {string} Breadcrumb HTML
  */
 function generateBreadcrumb(page, config) {
+  // Calculate relative path to index.html from current page
+  const currentDir = path.dirname(page.path);
+  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
+  const indexPath = currentDepth > 0 ? '../'.repeat(currentDepth) + 'index.html' : 'index.html';
+  
   let html = '<nav class="breadcrumb" aria-label="パンくずナビゲーション">\n';
-  html += '  <a href="../index.html">ホーム</a>\n';
+  html += `  <a href="${indexPath}">ホーム</a>\n`;
   html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
   html += `  <span class="breadcrumb-current" aria-current="page">${page.title}</span>\n`;
   html += '</nav>\n';
