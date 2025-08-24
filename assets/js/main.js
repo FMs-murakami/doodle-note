@@ -128,7 +128,7 @@ function generateSidebarNavigation() {
             const pageUrl = convertPathToUrl(item.path);
             navigationHTML += `
                 <div class="nav-item">
-                    <a href="/${pageUrl}">${item.title}</a>
+                    <a href="/doodle-note/${pageUrl}">${item.title}</a>
                 </div>
             `;
         } else if (item.category && item.pages) {
@@ -161,7 +161,7 @@ function generateCategorySection(category, level = 0) {
             const pageUrl = convertPathToUrl(item.path);
             html += `
                 <li>
-                    <a href="/${pageUrl}">${item.title}</a>
+                    <a href="/doodle-note/${pageUrl}">${item.title}</a>
                 </li>
             `;
         } else if (item.category && item.pages) {
@@ -226,7 +226,7 @@ function generateCategoriesGrid() {
             gridHTML += `
                 <div class="page-card">
                     <h4 class="page-title">
-                        <a href="/${pageUrl}">${page.title}</a>
+                        <a href="/doodle-note/${pageUrl}">${page.title}</a>
                     </h4>
                     <p class="page-category">${page.category}</p>
                 </div>

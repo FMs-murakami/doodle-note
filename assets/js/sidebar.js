@@ -262,7 +262,7 @@ class SidebarManager {
       const highlightedTitle = this.highlightText(result.title, query);
       html += `
         <div class="search-result-item">
-          <a href="/${result.url}" class="search-result-link">
+          <a href="/doodle-note/${result.url}" class="search-result-link">
             <div class="search-result-title">${highlightedTitle}</div>
             <div class="search-result-category">${result.category}</div>
           </a>
