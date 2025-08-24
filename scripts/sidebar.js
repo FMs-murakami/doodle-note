@@ -81,6 +81,7 @@ function generateSidebar(config, currentPage) {
 function generateCategorySection(category, currentPage, level = 0, config) {
   const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const hasActiveChild = hasActivePage(category.pages, currentPage);
+  // Only open if this category contains the current page (changed from default open)
   const openAttribute = hasActiveChild ? ' open' : '';
   const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
   
@@ -158,12 +159,14 @@ function generateEnhancedSidebar(config, currentPage, includeSearch = true) {
 }
 
 /**
- * Generate breadcrumb navigation without categories
+ * Generate enhanced breadcrumb navigation with full hierarchical path
  * @param {Object} page - Current page object
  * @param {Object} config - Site configuration
- * @returns {string} Breadcrumb HTML
+ * @returns {string} Enhanced breadcrumb HTML
  */
 function generateBreadcrumb(page, config) {
+  const { findCategoryPath } = require('./config');
+  
   // Get base URL from config, default to '/' if not provided
   let baseUrl = '/';
   if (config && config.site && config.site.baseUrl) {
@@ -178,13 +181,46 @@ function generateBreadcrumb(page, config) {
   // Create absolute path to index.html
   const indexPath = baseUrl + 'index.html';
   
+  // Find the hierarchical path for this page
+  const categoryPath = findCategoryPath(config.pages, page.path);
+  
   let html = '<nav class="breadcrumb" aria-label="パンくずナビゲーション">\n';
   html += `  <a href="${indexPath}">ホーム</a>\n`;
-  html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
-  html += `  <span class="breadcrumb-current" aria-current="page">${page.title}</span>\n`;
+  
+  // Build breadcrumb path from category hierarchy
+  const categoryNames = [];
+  for (let i = 0; i < categoryPath.length; i++) {
+    const pathItem = categoryPath[i];
+    
+    if (pathItem.type === 'category') {
+      categoryNames.push(pathItem.category);
+      
+      // Create category index URL
+      const categoryUrl = generateCategoryUrl(categoryNames, baseUrl);
+      
+      html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
+      html += `  <a href="${categoryUrl}">${pathItem.category}</a>\n`;
+    } else if (pathItem.type === 'page') {
+      // This is the current page
+      html += '  <span class="breadcrumb-separator" aria-hidden="true">/</span>\n';
+      html += `  <span class="breadcrumb-current" aria-current="page">${pathItem.title}</span>\n`;
+    }
+  }
+  
   html += '</nav>\n';
   
   return html;
+}
+
+/**
+ * Generate URL for category index page
+ * @param {Array} categoryNames - Array of category names in hierarchical order
+ * @param {string} baseUrl - Base URL for the site
+ * @returns {string} Category index URL
+ */
+function generateCategoryUrl(categoryNames, baseUrl) {
+  const categorySlug = categoryNames.join('-').toLowerCase().replace(/[^a-z0-9\-]/g, '-');
+  return `${baseUrl}category-${categorySlug}.html`;
 }
 
 /**
@@ -343,5 +379,6 @@ module.exports = {
   generateCategoryStats,
   generateTableOfContents,
   generatePageNavigation,
-  getPageUrl
+  getPageUrl,
+  generateCategoryUrl
 };
