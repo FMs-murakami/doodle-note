@@ -9,6 +9,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { loadConfig, groupPagesByCategory, getCategories } = require('./config');
 const { convertMarkdown } = require('./markdown');
+const outputDir = process.env.OUTPUT_DIR || 'dist';
 
 /**
  * Copy static files to dist directory
@@ -18,19 +19,19 @@ async function copyStaticFiles() {
   
   // Copy assets directory
   if (await fs.pathExists('assets')) {
-    await fs.copy('assets', 'dist/assets');
+    await fs.copy('assets', path.join(outputDir, 'assets'));
   }
   
   // Copy favicon if it exists
   if (await fs.pathExists('favicon.ico')) {
-    await fs.copy('favicon.ico', 'dist/favicon.ico');
+    await fs.copy('favicon.ico', path.join(outputDir, 'favicon.ico'));
   }
   
   // Copy any additional static files
   const staticFiles = ['robots.txt', '.nojekyll'];
   for (const file of staticFiles) {
     if (await fs.pathExists(file)) {
-      await fs.copy(file, path.join('dist', file));
+      await fs.copy(file, path.join(outputDir, file));
     }
   }
 }
@@ -141,7 +142,7 @@ async function generateIndex(config) {
 </body>
 </html>`;
 
-  await fs.writeFile('dist/index.html', indexHtml);
+  await fs.writeFile(path.join(outputDir, 'index.html'), indexHtml);
 }
 
 /**
@@ -270,7 +271,7 @@ async function generateCategoryIndexes(config) {
 
     // Save category index page
     const categoryFileName = `category-${category.toLowerCase().replace(/[^a-z0-9]/g, '-')}.html`;
-    await fs.writeFile(path.join('dist', categoryFileName), categoryIndexHtml);
+    await fs.writeFile(path.join(outputDir, categoryFileName), categoryIndexHtml);
     console.log(`✅ Generated category index: ${categoryFileName}`);
   }
 }
@@ -284,7 +285,7 @@ async function build() {
   try {
     // 1. Clean up output directory
     console.log('🧹 Cleaning output directory...');
-    await fs.emptyDir('dist');
+    await fs.emptyDir(outputDir);
     
     // 2. Load configuration
     console.log('⚙️  Loading configuration...');
@@ -300,7 +301,7 @@ async function build() {
         const htmlContent = await convertMarkdown(page, config, groupedPages);
         
         // Save processed HTML
-        const outputPath = path.join('dist', page.path.replace('.md', '.html'));
+        const outputPath = path.join(outputDir, page.path.replace('.md', '.html'));
         await fs.ensureDir(path.dirname(outputPath));
         await fs.writeFile(outputPath, htmlContent);
         
