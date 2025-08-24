@@ -7,7 +7,92 @@
 const fs = require('fs-extra');
 const path = require('path');
 const { getPageUrl, generateBreadcrumb } = require('../scripts/sidebar');
+const { convertMarkdownToHtml } = require('../scripts/markdown');
 const { build } = require('../scripts/build');
+
+/**
+ * Test markdown link conversion functionality
+ */
+async function testMarkdownLinkConversion() {
+  console.log('🧪 Testing markdown link conversion...\n');
+  
+  const testCases = [
+    {
+      description: 'Same directory link',
+      currentPage: 'docs/api/authentication.md',
+      markdown: '[API Endpoints](endpoints.md)',
+      expectedHref: 'endpoints.html'
+    },
+    {
+      description: 'Parent directory link',
+      currentPage: 'docs/api/authentication.md',
+      markdown: '[Security Guide](../guides/security.md)',
+      expectedHref: '../guides/security.html'
+    },
+    {
+      description: 'Nested directory link',
+      currentPage: 'docs/README.md',
+      markdown: '[Setup Guide](setup/environment.md)',
+      expectedHref: 'setup/environment.html'
+    },
+    {
+      description: 'External URL (should not change)',
+      currentPage: 'docs/api/authentication.md',
+      markdown: '[GitHub](https://github.com/example/repo)',
+      expectedHref: 'https://github.com/example/repo'
+    },
+    {
+      description: 'Non-markdown file (should not change)',
+      currentPage: 'docs/api/authentication.md',
+      markdown: '[Image](../images/diagram.png)',
+      expectedHref: '../images/diagram.png'
+    }
+  ];
+
+  let passed = 0;
+  let failed = 0;
+
+  for (const testCase of testCases) {
+    try {
+      const { html } = await convertMarkdownToHtml(testCase.markdown, testCase.currentPage);
+      
+      // Extract href from the generated HTML
+      const linkMatch = html.match(/<a href="([^"]*)"[^>]*>/);
+      
+      if (!linkMatch) {
+        console.log(`Test: ${testCase.description}`);
+        console.log(`  ❌ FAIL - No link found in HTML output`);
+        console.log(`  HTML: ${html}\n`);
+        failed++;
+        continue;
+      }
+      
+      const actualHref = linkMatch[1];
+      const isPass = actualHref === testCase.expectedHref;
+      
+      console.log(`Test: ${testCase.description}`);
+      console.log(`  Current page: ${testCase.currentPage}`);
+      console.log(`  Markdown: ${testCase.markdown}`);
+      console.log(`  Expected href: ${testCase.expectedHref}`);
+      console.log(`  Actual href: ${actualHref}`);
+      console.log(`  Status: ${isPass ? '✅ PASS' : '❌ FAIL'}\n`);
+      
+      if (isPass) {
+        passed++;
+      } else {
+        failed++;
+      }
+      
+    } catch (error) {
+      console.log(`Test: ${testCase.description}`);
+      console.log(`  ❌ FAIL - Error: ${error.message}\n`);
+      failed++;
+    }
+  }
+
+  console.log(`Markdown Link Conversion Tests: ${passed} passed, ${failed} failed\n`);
+  return failed === 0;
+}
 
 /**
  * Test URL generation functionality
@@ -194,6 +279,7 @@ async function runTests() {
   const results = {
     urlGeneration: testUrlGeneration(),
     breadcrumbGeneration: testBreadcrumbGeneration(),
+    markdownLinkConversion: await testMarkdownLinkConversion(),
     buildProcess: await testBuildProcess()
   };
   
@@ -202,6 +288,7 @@ async function runTests() {
   console.log('📊 Test Summary:');
   console.log(`  URL Generation: ${results.urlGeneration ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`  Breadcrumb Generation: ${results.breadcrumbGeneration ? '✅ PASS' : '❌ FAIL'}`);
+  console.log(`  Markdown Link Conversion: ${results.markdownLinkConversion ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`  Build Process: ${results.buildProcess ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`\n${allPassed ? '🎉 All tests passed!' : '💥 Some tests failed!'}`);
   
@@ -216,4 +303,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { testUrlGeneration, testBreadcrumbGeneration, testBuildProcess, runTests };
+module.exports = { testUrlGeneration, testBreadcrumbGeneration, testMarkdownLinkConversion, testBuildProcess, runTests };

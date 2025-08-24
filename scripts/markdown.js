@@ -8,6 +8,28 @@ const path = require('path');
 const { marked } = require('marked');
 const hljs = require('highlight.js');
 
+/**
+ * Convert markdown link to HTML link
+ * @param {string} href - Original href from markdown link
+ * @param {string} currentPagePath - Path of the current page being processed
+ * @returns {string} Converted href for HTML output
+ */
+function convertMarkdownLinkToHtml(href, currentPagePath) {
+  // Only process links that end with .md
+  if (!href.endsWith('.md')) {
+    return href;
+  }
+  
+  // If it's an absolute path or external URL, just convert .md to .html
+  if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('/')) {
+    return href.replace(/\.md$/, '.html');
+  }
+  
+  // For relative paths, simply convert .md to .html
+  // The relative path structure should remain the same
+  return href.replace(/\.md$/, '.html');
+}
+
 // Configure marked with syntax highlighting
 marked.setOptions({
   highlight: function(code, lang) {
@@ -82,13 +104,25 @@ function extractFrontmatter(content) {
 /**
  * Convert markdown content to HTML
  * @param {string} markdownContent - Raw markdown content
+ * @param {string} currentPagePath - Path of the current page being processed (for link conversion)
  * @returns {Promise<string>} Converted HTML content
  */
-async function convertMarkdownToHtml(markdownContent) {
+async function convertMarkdownToHtml(markdownContent, currentPagePath = '') {
   const { frontmatter, content } = extractFrontmatter(markdownContent);
   
   try {
-    const htmlContent = marked(content);
+    // Create a custom renderer for link processing
+    const renderer = new marked.Renderer();
+    
+    // Override the link renderer to convert .md links to .html
+    renderer.link = function(href, title, text) {
+      const convertedHref = convertMarkdownLinkToHtml(href, currentPagePath);
+      const titleAttr = title ? ` title="${title}"` : '';
+      return `<a href="${convertedHref}"${titleAttr}>${text}</a>`;
+    };
+    
+    // Convert markdown to HTML with custom renderer
+    const htmlContent = marked(content, { renderer });
     return { html: htmlContent, frontmatter };
   } catch (error) {
     throw new Error(`Markdown conversion failed: ${error.message}`);
@@ -148,7 +182,7 @@ async function convertMarkdown(page, config, groupedPages) {
     const markdownContent = await fs.readFile(markdownPath, 'utf8');
     
     // Convert markdown to HTML
-    const { html, frontmatter } = await convertMarkdownToHtml(markdownContent);
+    const { html, frontmatter } = await convertMarkdownToHtml(markdownContent, page.path);
     
     // Load template
     const template = await loadTemplate();
