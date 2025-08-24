@@ -6,8 +6,9 @@ let siteConfig = null;
 // Initialize configuration loading
 async function loadSiteConfig() {
     try {
-        const response = await fetch('config/config.json');
-        siteConfig = await response.json();
+        const response = await fetch('config/config.yaml');
+        const text = await response.text();
+        siteConfig = yaml.load(text);
     } catch (error) {
         console.warn('Could not load config.json (generated from config.yaml), using fallback configuration');
         // Fallback configuration matching the server-side structure
@@ -21,66 +22,6 @@ async function loadSiteConfig() {
                 {
                     "path": "docs/README.md",
                     "title": "README"
-                },
-                {
-                    "category": "開発関連",
-                    "pages": [
-                        {
-                            "path": "docs/setup/environment.md",
-                            "title": "開発環境セットアップ"
-                        },
-                        {
-                            "path": "docs/setup/deployment.md",
-                            "title": "デプロイメント手順"
-                        },
-                        {
-                            "path": "docs/setup.md",
-                            "title": "環境セットアップ手順"
-                        },
-                        {
-                            "category": "sub",
-                            "pages": [
-                                {
-                                    "path": "docs/setup/windows.md",
-                                    "title": "Windows環境構築"
-                                },
-                                {
-                                    "path": "docs/setup/macos.md",
-                                    "title": "macOS環境構築"
-                                }
-                            ]
-                        }
-                    ]
-                },
-                {
-                    "category": "API",
-                    "pages": [
-                        {
-                            "path": "docs/api/authentication.md",
-                            "title": "API認証仕様"
-                        },
-                        {
-                            "path": "docs/api/endpoints.md",
-                            "title": "APIエンドポイント仕様"
-                        },
-                        {
-                            "path": "docs/api-spec.md",
-                            "title": "API仕様書"
-                        }
-                    ]
-                },
-                {
-                    "category": "ガイド",
-                    "pages": [
-                        {
-                            "path": "docs/guides/troubleshooting.md",
-                            "title": "トラブルシューティングガイド"
-                        },
-                        {
-                            "path": "docs/guides/best-practices.md",
-                            "title": "ベストプラクティス"
-                        }
-                    ]
                 }
             ]
         };
