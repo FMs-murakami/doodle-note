@@ -7,54 +7,36 @@ const fs = require('fs-extra');
 const path = require('path');
 
 /**
- * Get page URL for navigation
+ * Get page URL for navigation (now generates absolute paths)
  * @param {Object} page - Page object
- * @param {string} currentPath - Current page path for relative URL calculation
- * @returns {string} Page URL
+ * @param {string} currentPath - Current page path (unused in absolute path mode)
+ * @param {Object} config - Site configuration containing baseUrl
+ * @returns {string} Absolute page URL
  */
-function getPageUrl(page, currentPath = '') {
+function getPageUrl(page, currentPath = '', config = null) {
   const htmlPath = page.path.replace('.md', '.html');
   
-  // If no current path, return the HTML path as-is
-  if (!currentPath) {
-    return htmlPath;
+  // Get base URL from config, default to '/' if not provided
+  let baseUrl = '/';
+  if (config && config.site && config.site.baseUrl) {
+    baseUrl = config.site.baseUrl;
   }
   
-  // Normalize paths to prevent duplication issues
-  const normalizedCurrentPath = currentPath.replace(/\\/g, '/');
+  // Ensure baseUrl ends with '/' for proper path joining
+  if (!baseUrl.endsWith('/')) {
+    baseUrl += '/';
+  }
+  
+  // Normalize the HTML path
   const normalizedHtmlPath = htmlPath.replace(/\\/g, '/');
   
-  // Calculate relative path from current page to target page
-  const currentDir = path.dirname(normalizedCurrentPath);
-  const targetDir = path.dirname(normalizedHtmlPath);
-  const targetFile = path.basename(normalizedHtmlPath);
+  // Create absolute path by combining baseUrl with the HTML path
+  let absolutePath = baseUrl + normalizedHtmlPath;
   
-  // If both pages are in the same directory
-  if (currentDir === targetDir) {
-    return targetFile;
-  }
+  // Clean up any double slashes (except after protocol)
+  absolutePath = absolutePath.replace(/([^:]\/)\/+/g, '$1');
   
-  // Calculate how many levels up we need to go from current directory
-  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
-  
-  // Build relative path
-  let relativePath = '';
-  
-  // Go up from current directory to root
-  if (currentDepth > 0) {
-    relativePath = '../'.repeat(currentDepth);
-  }
-  
-  // Navigate to target directory and file
-  if (targetDir !== '.') {
-    relativePath += targetDir + '/';
-  }
-  relativePath += targetFile;
-  
-  // Clean up any double slashes or redundant path segments
-  relativePath = relativePath.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
-  
-  return relativePath;
+  return absolutePath;
 }
 
 /**
@@ -71,7 +53,7 @@ function generateSidebar(config, currentPage) {
     if (item.path && item.title) {
       // This is a top-level page (no category)
       const isActive = item.path === currentPage;
-      const pageUrl = getPageUrl(item, currentPage);
+      const pageUrl = getPageUrl(item, currentPage, config);
       const activeClass = isActive ? ' class="active"' : '';
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
       
@@ -80,7 +62,7 @@ function generateSidebar(config, currentPage) {
       html += '  </div>\n';
     } else if (item.category && item.pages) {
       // This is a category with pages
-      html += generateCategorySection(item, currentPage, 0);
+      html += generateCategorySection(item, currentPage, 0, config);
     }
   });
   
@@ -93,9 +75,10 @@ function generateSidebar(config, currentPage) {
  * @param {Object} category - Category object with pages
  * @param {string} currentPage - Current page path
  * @param {number} level - Nesting level (0 = top level)
+ * @param {Object} config - Site configuration
  * @returns {string} Category HTML
  */
-function generateCategorySection(category, currentPage, level = 0) {
+function generateCategorySection(category, currentPage, level = 0, config) {
   const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const hasActiveChild = hasActivePage(category.pages, currentPage);
   const openAttribute = hasActiveChild ? ' open' : '';
@@ -113,7 +96,7 @@ function generateCategorySection(category, currentPage, level = 0) {
     if (item.path && item.title) {
       // Regular page
       const isActive = item.path === currentPage;
-      const pageUrl = getPageUrl(item, currentPage);
+      const pageUrl = getPageUrl(item, currentPage, config);
       const activeClass = isActive ? ' class="active"' : '';
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
       
@@ -122,7 +105,7 @@ function generateCategorySection(category, currentPage, level = 0) {
       html += '      </li>\n';
     } else if (item.category && item.pages) {
       // Nested category
-      html += generateCategorySection(item, currentPage, level + 1);
+      html += generateCategorySection(item, currentPage, level + 1, config);
     }
   });
   
@@ -181,10 +164,19 @@ function generateEnhancedSidebar(config, currentPage, includeSearch = true) {
  * @returns {string} Breadcrumb HTML
  */
 function generateBreadcrumb(page, config) {
-  // Calculate relative path to index.html from current page
-  const currentDir = path.dirname(page.path);
-  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
-  const indexPath = currentDepth > 0 ? '../'.repeat(currentDepth) + 'index.html' : 'index.html';
+  // Get base URL from config, default to '/' if not provided
+  let baseUrl = '/';
+  if (config && config.site && config.site.baseUrl) {
+    baseUrl = config.site.baseUrl;
+  }
+  
+  // Ensure baseUrl ends with '/' for proper path joining
+  if (!baseUrl.endsWith('/')) {
+    baseUrl += '/';
+  }
+  
+  // Create absolute path to index.html
+  const indexPath = baseUrl + 'index.html';
   
   let html = '<nav class="breadcrumb" aria-label="パンくずナビゲーション">\n';
   html += `  <a href="${indexPath}">ホーム</a>\n`;
@@ -329,7 +321,7 @@ function generatePageNavigation(currentPage, config) {
     const prevPage = allPages[currentIndex - 1];
     navigation.previous = {
       title: prevPage.title,
-      url: getPageUrl(prevPage, currentPage.path)
+      url: getPageUrl(prevPage, currentPage.path, config)
     };
   }
   
@@ -337,7 +329,7 @@ function generatePageNavigation(currentPage, config) {
     const nextPage = allPages[currentIndex + 1];
     navigation.next = {
       title: nextPage.title,
-      url: getPageUrl(nextPage, currentPage.path)
+      url: getPageUrl(nextPage, currentPage.path, config)
     };
   }
   

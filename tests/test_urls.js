@@ -1,56 +1,71 @@
 // Test URL generation
 const { getPageUrl } = require('../scripts/sidebar');
 
-// Test cases
+// Mock config object for testing
+const mockConfig = {
+  site: {
+    baseUrl: '/'
+  }
+};
+
+// Test cases (updated for absolute paths)
 const testCases = [
   {
-    description: 'Same directory (docs/)',
+    description: 'Same directory (docs/) - absolute path',
     currentPage: 'docs/README.md',
     targetPage: { path: 'docs/api-spec.md' },
-    expected: 'api-spec.html'
+    expected: '/docs/api-spec.html'
   },
   {
-    description: 'From subdirectory to docs root',
+    description: 'From subdirectory to docs root - absolute path',
     currentPage: 'docs/setup/environment.md',
     targetPage: { path: 'docs/README.md' },
-    expected: '../README.html'
+    expected: '/docs/README.html'
   },
   {
-    description: 'From subdirectory to another subdirectory',
+    description: 'From subdirectory to another subdirectory - absolute path',
     currentPage: 'docs/setup/environment.md',
     targetPage: { path: 'docs/api/endpoints.md' },
-    expected: '../api/endpoints.html'
+    expected: '/docs/api/endpoints.html'
   },
   {
-    description: 'From docs root to subdirectory',
+    description: 'From docs root to subdirectory - absolute path',
     currentPage: 'docs/README.md',
     targetPage: { path: 'docs/setup/environment.md' },
-    expected: 'setup/environment.html'
+    expected: '/docs/setup/environment.html'
   },
   {
-    description: 'No current path (for index pages)',
+    description: 'No current path (for index pages) - absolute path',
     currentPage: '',
     targetPage: { path: 'docs/README.md' },
-    expected: 'docs/README.html'
+    expected: '/docs/README.html'
   },
   // Additional test cases for the specific issues mentioned in the request
   {
-    description: 'Windows setup from same directory (should not duplicate paths)',
+    description: 'Windows setup from same directory - absolute path',
     currentPage: 'docs/setup/environment.md',
     targetPage: { path: 'docs/setup/windows.md' },
-    expected: 'windows.html'
+    expected: '/docs/setup/windows.html'
   },
   {
-    description: 'Windows setup from docs root (should not duplicate paths)',
+    description: 'Windows setup from docs root - absolute path',
     currentPage: 'docs/README.md',
     targetPage: { path: 'docs/setup/windows.md' },
-    expected: 'setup/windows.html'
+    expected: '/docs/setup/windows.html'
   },
   {
-    description: 'macOS setup from Windows setup (same directory)',
+    description: 'macOS setup from Windows setup (same directory) - absolute path',
     currentPage: 'docs/setup/windows.md',
     targetPage: { path: 'docs/setup/macos.md' },
-    expected: 'macos.html'
+    expected: '/docs/setup/macos.html'
+  },
+  // Test with custom baseUrl
+  {
+    description: 'Custom baseUrl test',
+    currentPage: 'docs/README.md',
+    targetPage: { path: 'docs/api-spec.md' },
+    expected: '/custom/docs/api-spec.html',
+    config: { site: { baseUrl: '/custom/' } }
   }
 ];
 
@@ -59,7 +74,8 @@ console.log('Testing URL generation...\n');
 let allPassed = true;
 
 testCases.forEach((testCase, index) => {
-  const result = getPageUrl(testCase.targetPage, testCase.currentPage);
+  const config = testCase.config || mockConfig;
+  const result = getPageUrl(testCase.targetPage, testCase.currentPage, config);
   const passed = result === testCase.expected;
   
   if (!passed) {

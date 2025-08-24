@@ -190,7 +190,7 @@ async function generateCategoryIndexes(config) {
     const { getPageUrl } = require('./sidebar');
     const categoryContent = categoryPages.map(page => `
       <div class="page-card">
-        <h3><a href="${getPageUrl(page, '')}">${page.title}</a></h3>
+        <h3><a href="${getPageUrl(page, '', config)}">${page.title}</a></h3>
         <p class="page-path">${page.path}</p>
       </div>
     `).join('');
