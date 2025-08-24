@@ -98,8 +98,8 @@ marked.setOptions({
  * @param {string} templateName - Name of the template file
  * @returns {Promise<string>} Template content
  */
-async function loadTemplate(templateName = 'page.html') {
-  const templatePath = path.join(process.cwd(), 'templates', templateName);
+async function loadTemplate(templateName = 'page') {
+  const templatePath = path.join(process.cwd(), 'templates', `${templateName}.html`);
   
   if (!await fs.pathExists(templatePath)) {
     throw new Error(`Template not found: ${templatePath}`);

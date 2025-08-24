@@ -66,11 +66,12 @@ async function copyStaticFiles() {
     await fs.copy('assets', path.join(outputDir, 'assets'));
   }
   
-  // Copy docs directory (for images and other assets)
+  // Copy docs directory (for images and other assets, excluding .md)
   if (await fs.pathExists('docs')) {
-    await fs.copy('docs', path.join(outputDir, 'docs'));
+    await fs.copy('docs', path.join(outputDir, 'docs'), {
+      filter: (src) => !src.endsWith('.md')
+    });
   }
-  
   // Note: config directory is handled separately by generateConfigJson()
   // to convert YAML to JSON for client-side consumption
   
