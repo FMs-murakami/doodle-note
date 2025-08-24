@@ -6,7 +6,7 @@ let siteConfig = null;
 // Initialize configuration loading
 async function loadSiteConfig() {
     try {
-        const response = await fetch('/config/config.yaml');
+        const response = await fetch('/doodle-note/config/config.yaml');
         const text = await response.text();
         siteConfig = yaml.load(text);
     } catch (error) {
