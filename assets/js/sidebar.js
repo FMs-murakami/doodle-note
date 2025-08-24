@@ -485,24 +485,29 @@ class SidebarManager {
   
   /**
    * Highlight the current page in the sidebar navigation
+   * Updated to work with absolute paths
    */
   highlightCurrentPage() {
     const currentPath = window.location.pathname;
-    const currentPage = currentPath.split('/').pop() || 'index.html';
     
     // Remove any existing active classes
     const existingActive = this.sidebar.querySelectorAll('.active');
-    existingActive.forEach(link => link.classList.remove('active'));
+    existingActive.forEach(link => {
+      link.classList.remove('active');
+      link.removeAttribute('aria-current');
+    });
     
     // Find and highlight the current page
     const navLinks = this.sidebar.querySelectorAll('a[href]');
     navLinks.forEach(link => {
       const href = link.getAttribute('href');
-      const linkPage = href.split('/').pop();
       
-      // Check for exact match or if this is the index page
-      if (linkPage === currentPage || 
-          (currentPage === 'index.html' && (href === 'index.html' || href === './' || href === '/'))) {
+      // For absolute paths, compare the full pathname
+      // Also handle index page cases
+      if (href === currentPath || 
+          (currentPath === '/' && (href === '/index.html' || href === '/' || href === '/index.html')) ||
+          (currentPath.endsWith('/') && href === currentPath + 'index.html') ||
+          (currentPath.endsWith('/index.html') && href === currentPath.replace('/index.html', '/'))) {
         link.classList.add('active');
         link.setAttribute('aria-current', 'page');
         
