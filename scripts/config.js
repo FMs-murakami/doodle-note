@@ -1,17 +1,18 @@
 /**
  * Configuration management module
- * Handles loading, validation, and processing of config.json
+ * Handles loading, validation, and processing of config.yaml
  */
 
 const fs = require('fs-extra');
 const path = require('path');
+const yaml = require('js-yaml');
 
 /**
- * Load and validate configuration from config.json
+ * Load and validate configuration from config.yaml
  * @returns {Promise<Object>} Parsed configuration object
  */
 async function loadConfig() {
-  const configPath = path.join(process.cwd(), 'config', 'config.json');
+  const configPath = path.join(process.cwd(), 'config', 'config.yaml');
   
   try {
     // Check if config file exists
@@ -20,7 +21,8 @@ async function loadConfig() {
     }
     
     // Read and parse config file
-    const configData = await fs.readJson(configPath);
+    const configContent = await fs.readFile(configPath, 'utf8');
+    const configData = yaml.load(configContent);
     
     // Validate configuration structure
     validateConfig(configData);
@@ -34,8 +36,8 @@ async function loadConfig() {
   } catch (error) {
     if (error.code === 'ENOENT') {
       throw new Error(`Configuration file not found: ${configPath}`);
-    } else if (error instanceof SyntaxError) {
-      throw new Error(`Invalid JSON format in configuration file: ${error.message}`);
+    } else if (error instanceof yaml.YAMLException) {
+      throw new Error(`Invalid YAML format in configuration file: ${error.message}`);
     } else {
       throw error;
     }
