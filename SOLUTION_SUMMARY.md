@@ -1,135 +1,149 @@
-# URL調整修正 - 解決方法の概要
+# Solution Summary: Documentation Site Fixes
 
-## 問題の詳細
+## Issues Addressed
 
-**問題**: サイドバーのリンク設定と実際のHTMLファイルパスに齟齬があった
-- HTMLファイルは `/dist/docs` 配下に生成される
-- サイドバーのリンクが正しい相対パスを生成していない
+### 1. Sidebar Issues Fixed ✅
 
-## 根本原因の分析
+#### Problem: Collapsible menus not working
+- **Root Cause**: Server-side navigation generation used `onclick="toggleCategory('categoryId')"` but client-side SidebarManager expected different HTML structure
+- **Solution**: 
+  - Updated `scripts/sidebar.js` to generate HTML structure matching client-side expectations
+  - Changed from `onclick` handlers to `data-category` attributes for proper event delegation
+  - Unified navigation structure between server-side and client-side generation
 
-1. **ファイル構造**:
-   - Markdownファイル: `docs/README.md`, `docs/setup/environment.md` など
-   - 生成されるHTMLファイル: `dist/docs/README.html`, `dist/docs/setup/environment.html` など
+#### Problem: Sidebar content changes between pages
+- **Root Cause**: Client-side navigation (main.js) used flat structure while server-side (scripts/sidebar.js) used hierarchical structure
+- **Solution**:
+  - Updated `assets/js/main.js` to load configuration from `config/config.json`
+  - Modified client-side navigation generation to match hierarchical structure
+  - Ensured both client and server use identical HTML structure and CSS classes
 
-2. **問題のあったコード**:
-   - `scripts/sidebar.js` の `getPageUrl()` 関数が単純な `../` 追加のみ
-   - パンくずナビゲーションがハードコードされた `../index.html` を使用
-   - ディレクトリの深さを正しく計算していない
+### 2. Image Display Fixed ✅
 
-## 実装した解決策
+#### Problem: Images not displaying with path `../docs/./sample01.png`
+- **Root Cause**: Incorrect relative path resolution in markdown processing
+- **Solution**:
+  - Enhanced `convertImagePath()` function in `scripts/markdown.js`
+  - Added proper path normalization to handle `./` and `../` patterns
+  - Updated build process to copy `docs/` directory to output for image assets
+  - Fixed relative path calculation from any page depth to image location
 
-### 1. 相対パス計算の改善
+### 3. Table Alignment Support Added ✅
 
-**修正前**:
-```javascript
-function getPageUrl(page, currentPath = '') {
-  const htmlPath = page.path.replace('.md', '.html');
-  const currentDir = path.dirname(currentPath);
-  if (currentDir && currentDir !== '.') {
-    return '../' + htmlPath;  // 単純な../追加のみ
-  }
-  return htmlPath;
+#### Problem: Markdown table alignment syntax not supported
+- **Root Cause**: Missing CSS classes and markdown processing for alignment
+- **Solution**:
+  - Added CSS classes in `assets/css/style.css`: `.text-left`, `.text-center`, `.text-right`
+  - Enhanced markdown renderer in `scripts/markdown.js` to detect alignment syntax
+  - Added custom `tablecell` renderer to inject appropriate CSS classes based on markdown alignment
+
+### 4. Page Title Display Removed ✅
+
+#### Problem: Unwanted page titles in headers
+- **Solution**:
+  - Removed page title headers from `templates/page.html`
+  - Updated `scripts/build.js` to remove page titles from index and category pages
+  - Preserved page titles in document metadata and breadcrumbs
+
+## Technical Changes Made
+
+### Files Modified:
+
+1. **`scripts/sidebar.js`**
+   - Updated `generateSidebar()` to add `id="navigation"` to nav element
+   - Modified `generateCategorySection()` to use `data-category` attributes
+   - Changed HTML structure to match client-side expectations
+   - Removed `onclick` handlers in favor of event delegation
+
+2. **`assets/js/main.js`**
+   - Added async configuration loading from `config/config.json`
+   - Updated navigation generation to use hierarchical structure
+   - Modified `generateCategorySection()` to match server-side HTML structure
+   - Enhanced `generateCategoriesGrid()` to work with hierarchical data
+
+3. **`scripts/markdown.js`**
+   - Enhanced `convertImagePath()` with better path normalization
+   - Added custom table renderers for alignment support
+   - Updated `generateNavigation()` to use hierarchical config
+   - Modified `convertMarkdown()` to pass full config to navigation generation
+
+4. **`assets/css/style.css`**
+   - Added table alignment CSS classes:
+     - `.content-area th.text-left, .content-area td.text-left`
+     - `.content-area th.text-center, .content-area td.text-center`
+     - `.content-area th.text-right, .content-area td.text-right`
+
+5. **`templates/page.html`**
+   - Removed page header section with title display
+   - Preserved breadcrumb navigation with page titles
+
+6. **`scripts/build.js`**
+   - Added copying of `docs/` directory for image assets
+   - Added copying of `config/` directory for client-side config loading
+   - Removed page title headers from index and category page generation
+
+## Verification Steps
+
+### Test Sidebar Functionality:
+1. Navigate to any page - sidebar should maintain consistent content
+2. Click category toggles - should expand/collapse properly
+3. Category expansion state should persist during navigation
+4. Search functionality should work across all pages
+
+### Test Image Display:
+1. Check `docs/README.md` - image should display correctly
+2. Verify image paths resolve properly from any page depth
+3. Confirm images are accessible in built version
+
+### Test Table Alignment:
+1. View tables in markdown files
+2. Verify left, center, and right alignment work as expected
+3. Check that alignment classes are applied correctly
+
+### Test Page Titles:
+1. Confirm page titles are removed from content headers
+2. Verify titles still appear in browser tabs and breadcrumbs
+3. Check that document structure remains intact
+
+## Configuration Structure
+
+The site now uses a hierarchical configuration structure in `config/config.json`:
+
+```json
+{
+  "site": {
+    "title": "社内手順書・仕様書",
+    "description": "社内向け技術文書管理システム"
+  },
+  "pages": [
+    {
+      "path": "docs/README.md",
+      "title": "README"
+    },
+    {
+      "category": "開発関連",
+      "pages": [
+        {
+          "path": "docs/setup/environment.md",
+          "title": "開発環境セットアップ"
+        }
+      ]
+    }
+  ]
 }
 ```
 
-**修正後**:
-```javascript
-function getPageUrl(page, currentPath = '') {
-  const htmlPath = page.path.replace('.md', '.html');
-  
-  if (!currentPath) {
-    return htmlPath;
-  }
-  
-  const currentDir = path.dirname(currentPath);
-  const targetDir = path.dirname(htmlPath);
-  const targetFile = path.basename(htmlPath);
-  
-  // 同一ディレクトリの場合
-  if (currentDir === targetDir) {
-    return targetFile;
-  }
-  
-  // 相対パスを正確に計算
-  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
-  let relativePath = '';
-  
-  if (currentDepth > 0) {
-    relativePath = '../'.repeat(currentDepth);
-  }
-  
-  if (targetDir !== '.') {
-    relativePath += targetDir + '/';
-  }
-  relativePath += targetFile;
-  
-  return relativePath;
-}
-```
+## Compatibility Notes
 
-### 2. パンくずナビゲーションの動的計算
+- All changes maintain backward compatibility with existing markdown files
+- Interactive functionality works across all supported browsers
+- Build process remains compatible with existing deployment pipeline
+- Accessibility features and ARIA attributes are preserved
+- Responsive design functionality is maintained
 
-**修正前**:
-```javascript
-html += '  <a href="../index.html">ホーム</a>\n';  // ハードコード
-```
+## Future Maintenance
 
-**修正後**:
-```javascript
-const currentDir = path.dirname(page.path);
-const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
-const indexPath = currentDepth > 0 ? '../'.repeat(currentDepth) + 'index.html' : 'index.html';
-html += `  <a href="${indexPath}">ホーム</a>\n`;  // 動的計算
-```
-
-### 3. 一貫したURL生成の適用
-
-- カテゴリインデックス生成でも同じ `getPageUrl()` 関数を使用
-- すべてのナビゲーション要素で統一されたロジックを適用
-
-## 修正結果の例
-
-| 現在のページ | 対象ページ | 修正前 | 修正後 |
-|-------------|-----------|--------|--------|
-| `docs/setup/environment.md` | `docs/README.md` | `../docs/README.html` ❌ | `../README.html` ✅ |
-| `docs/README.md` | `docs/setup/environment.md` | `docs/setup/environment.html` ❌ | `setup/environment.html` ✅ |
-| `docs/setup/environment.md` | `docs/api/endpoints.md` | `../docs/api/endpoints.html` ❌ | `../api/endpoints.html` ✅ |
-
-## テストの追加
-
-### 1. 単体テスト (`run_tests.js`)
-- URL生成ロジックの検証
-- パンくずナビゲーションの検証
-- ビルドプロセスの検証
-
-### 2. 統合テスト (`test_integration.js`)
-- 実際に生成されたHTMLファイルのリンク検証
-- サイドバーとパンくずの実際の動作確認
-
-### 3. 実行方法
-```bash
-npm test                # 全テスト実行
-npm run test:integration # 統合テスト
-npm run test:urls       # URL生成テスト
-```
-
-## 検証済み項目
-
-- ✅ 同一ディレクトリ内のナビゲーション
-- ✅ 親ディレクトリへのナビゲーション
-- ✅ 子ディレクトリへのナビゲーション
-- ✅ 兄弟ディレクトリ間のナビゲーション
-- ✅ パンくずナビゲーションの正確性
-- ✅ アセット（CSS、JS）の読み込み
-- ✅ 複数階層のディレクトリ構造での動作
-
-## 影響範囲
-
-この修正により以下が改善されました：
-- サイドバーのすべてのリンクが正しく動作
-- パンくずナビゲーションが正しいパスを生成
-- カテゴリページのリンクが正常動作
-- 全体的なナビゲーション体験の向上
-
-HTMLファイルが `/dist/docs` 配下に生成される構造に完全対応し、すべてのリンクが正しく機能するようになりました。
+- Configuration changes should be made in `config/config.json`
+- New pages should follow the hierarchical structure
+- Image assets should be placed in the `docs/` directory
+- Table alignment uses standard markdown syntax (`:---`, `:---:`, `---:`)

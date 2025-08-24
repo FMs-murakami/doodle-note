@@ -1,72 +1,96 @@
 // Main JavaScript file for the internal documentation site
 
-// Configuration data - in a real application, this would be loaded from config.json
-const siteConfig = {
-    "site": {
-        "title": "社内手順書・仕様書",
-        "description": "社内向け技術文書管理システム",
-        "baseUrl": "/"
-    },
-    "pages": [
-        {
-            "path": "docs/README.md",
-            "title": "ドキュメント一覧",
-            "category": "概要"
-        },
-        {
-            "path": "docs/setup/environment.md",
-            "title": "開発環境セットアップ",
-            "category": "環境構築"
-        },
-        {
-            "path": "docs/setup/deployment.md",
-            "title": "デプロイメント手順",
-            "category": "環境構築"
-        },
-        {
-            "path": "docs/setup.md",
-            "title": "環境セットアップ手順",
-            "category": "環境構築"
-        },
-        {
-            "path": "docs/setup/windows.md",
-            "title": "Windows環境構築",
-            "category": "環境構築"
-        },
-        {
-            "path": "docs/setup/macos.md",
-            "title": "macOS環境構築",
-            "category": "環境構築"
-        },
-        {
-            "path": "docs/api/authentication.md",
-            "title": "API認証仕様",
-            "category": "API"
-        },
-        {
-            "path": "docs/api/endpoints.md",
-            "title": "APIエンドポイント仕様",
-            "category": "API"
-        },
-        {
-            "path": "docs/api-spec.md",
-            "title": "API仕様書",
-            "category": "API"
-        },
-        {
-            "path": "docs/guides/troubleshooting.md",
-            "title": "トラブルシューティングガイド",
-            "category": "ガイド"
-        },
-        {
-            "path": "docs/guides/best-practices.md",
-            "title": "ベストプラクティス",
-            "category": "ガイド"
-        }
-    ]
-};
+// Load configuration from server
+let siteConfig = null;
 
-document.addEventListener('DOMContentLoaded', function() {
+// Initialize configuration loading
+async function loadSiteConfig() {
+    try {
+        const response = await fetch('config/config.json');
+        siteConfig = await response.json();
+    } catch (error) {
+        console.warn('Could not load config.json, using fallback configuration');
+        // Fallback configuration matching the server-side structure
+        siteConfig = {
+            "site": {
+                "title": "社内手順書・仕様書",
+                "description": "社内向け技術文書管理システム",
+                "baseUrl": "/"
+            },
+            "pages": [
+                {
+                    "path": "docs/README.md",
+                    "title": "README"
+                },
+                {
+                    "category": "開発関連",
+                    "pages": [
+                        {
+                            "path": "docs/setup/environment.md",
+                            "title": "開発環境セットアップ"
+                        },
+                        {
+                            "path": "docs/setup/deployment.md",
+                            "title": "デプロイメント手順"
+                        },
+                        {
+                            "path": "docs/setup.md",
+                            "title": "環境セットアップ手順"
+                        },
+                        {
+                            "category": "sub",
+                            "pages": [
+                                {
+                                    "path": "docs/setup/windows.md",
+                                    "title": "Windows環境構築"
+                                },
+                                {
+                                    "path": "docs/setup/macos.md",
+                                    "title": "macOS環境構築"
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "category": "API",
+                    "pages": [
+                        {
+                            "path": "docs/api/authentication.md",
+                            "title": "API認証仕様"
+                        },
+                        {
+                            "path": "docs/api/endpoints.md",
+                            "title": "APIエンドポイント仕様"
+                        },
+                        {
+                            "path": "docs/api-spec.md",
+                            "title": "API仕様書"
+                        }
+                    ]
+                },
+                {
+                    "category": "ガイド",
+                    "pages": [
+                        {
+                            "path": "docs/guides/troubleshooting.md",
+                            "title": "トラブルシューティングガイド"
+                        },
+                        {
+                            "path": "docs/guides/best-practices.md",
+                            "title": "ベストプラクティス"
+                        }
+                    ]
+                }
+            ]
+        };
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function() {
+    // Load configuration first
+    await loadSiteConfig();
+    
     // Initialize the site
     initializeNavigation();
     generateCategoriesGrid();
@@ -90,67 +114,106 @@ function initializeNavigation() {
     generateSidebarNavigation();
 }
 
-// Generate sidebar navigation based on directory structure
+// Generate sidebar navigation based on hierarchical structure (matching server-side)
 function generateSidebarNavigation() {
     const navigationContainer = document.getElementById('navigation');
-    if (!navigationContainer) return;
+    if (!navigationContainer || !siteConfig) return;
     
-    // Group pages by category
-    const categories = {};
-    siteConfig.pages.forEach(page => {
-        if (!categories[page.category]) {
-            categories[page.category] = [];
-        }
-        categories[page.category].push(page);
-    });
-    
-    // Generate navigation HTML
+    // Generate navigation HTML using the same structure as server-side
     let navigationHTML = '';
-    Object.keys(categories).forEach(categoryName => {
-        const categoryId = categoryName.replace(/\s+/g, '-').toLowerCase();
-        navigationHTML += `
-            <div class="nav-category expanded" data-category="${categoryId}">
-                <button class="nav-category-toggle" aria-expanded="true">
-                    <h3 class="nav-category-title">${categoryName}</h3>
-                    <span class="nav-category-icon">▼</span>
-                </button>
-                <ul class="nav-category-list">
-        `;
-        
-        categories[categoryName].forEach(page => {
-            const pageUrl = convertPathToUrl(page.path);
+    
+    siteConfig.pages.forEach((item, index) => {
+        if (item.path && item.title) {
+            // This is a top-level page (no category)
+            const pageUrl = convertPathToUrl(item.path);
             navigationHTML += `
-                <li>
-                    <a href="${pageUrl}">${page.title}</a>
-                </li>
+                <div class="nav-item">
+                    <a href="${pageUrl}">${item.title}</a>
+                </div>
             `;
-        });
-        
-        navigationHTML += `
-                </ul>
-            </div>
-        `;
+        } else if (item.category && item.pages) {
+            // This is a category with pages
+            navigationHTML += generateCategorySection(item, 0);
+        }
     });
     
     navigationContainer.innerHTML = navigationHTML;
 }
 
+// Generate a category section with collapsible functionality (matching server-side)
+function generateCategorySection(category, level = 0) {
+    const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
+    const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
+    
+    let html = `
+        <div class="nav-category${levelClass}" data-category="${categoryId}">
+            <button class="nav-category-toggle" aria-expanded="true">
+                <h3 class="nav-category-title">${category.category}</h3>
+                <span class="nav-category-icon">▼</span>
+            </button>
+            <ul class="nav-category-list">
+    `;
+    
+    // Process pages in this category
+    category.pages.forEach(item => {
+        if (item.path && item.title) {
+            // Regular page
+            const pageUrl = convertPathToUrl(item.path);
+            html += `
+                <li>
+                    <a href="${pageUrl}">${item.title}</a>
+                </li>
+            `;
+        } else if (item.category && item.pages) {
+            // Nested category
+            html += generateCategorySection(item, level + 1);
+        }
+    });
+    
+    html += `
+            </ul>
+        </div>
+    `;
+    
+    return html;
+}
+
 // Generate categories grid for the main content area
 function generateCategoriesGrid() {
     const categoriesGrid = document.getElementById('categories-grid');
-    if (!categoriesGrid) return;
+    if (!categoriesGrid || !siteConfig) return;
     
-    // Group pages by category
+    // Generate categories grid HTML from hierarchical structure
+    let gridHTML = '';
+    
+    // Helper function to collect all pages from hierarchical structure
+    function collectPages(items, categoryName = null) {
+        const pages = [];
+        items.forEach(item => {
+            if (item.path && item.title) {
+                pages.push({
+                    ...item,
+                    category: categoryName || 'その他'
+                });
+            } else if (item.category && item.pages) {
+                pages.push(...collectPages(item.pages, item.category));
+            }
+        });
+        return pages;
+    }
+    
+    // Collect all pages and group by category
+    const allPages = collectPages(siteConfig.pages);
     const categories = {};
-    siteConfig.pages.forEach(page => {
+    
+    allPages.forEach(page => {
         if (!categories[page.category]) {
             categories[page.category] = [];
         }
         categories[page.category].push(page);
     });
     
-    // Generate categories grid HTML
-    let gridHTML = '';
+    // Generate grid HTML
     Object.keys(categories).forEach(categoryName => {
         gridHTML += `
             <div class="category-section">

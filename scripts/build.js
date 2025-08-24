@@ -22,6 +22,16 @@ async function copyStaticFiles() {
     await fs.copy('assets', path.join(outputDir, 'assets'));
   }
   
+  // Copy docs directory (for images and other assets)
+  if (await fs.pathExists('docs')) {
+    await fs.copy('docs', path.join(outputDir, 'docs'));
+  }
+  
+  // Copy config directory (for client-side config loading)
+  if (await fs.pathExists('config')) {
+    await fs.copy('config', path.join(outputDir, 'config'));
+  }
+  
   // Copy favicon if it exists
   if (await fs.pathExists('favicon.ico')) {
     await fs.copy('favicon.ico', path.join(outputDir, 'favicon.ico'));
@@ -100,10 +110,6 @@ async function generateIndex(config) {
             <div class="content-wrapper">
                 <!-- Page Content -->
                 <article class="page-content">
-                    <header class="page-header">
-                        <h1 class="page-title">ドキュメント一覧</h1>
-                    </header>
-                    
                     <div class="content-area">
                         <div class="index-content">
                             <div class="welcome-section">
@@ -228,10 +234,6 @@ async function generateCategoryIndexes(config) {
             <div class="content-wrapper">
                 <!-- Page Content -->
                 <article class="page-content">
-                    <header class="page-header">
-                        <h1 class="page-title">${category}</h1>
-                    </header>
-                    
                     <div class="content-area">
                         <div class="category-content">
                             <div class="category-description">

@@ -669,6 +669,22 @@ body {
   border-bottom: none;
 }
 
+/* Table alignment support for markdown syntax */
+.content-area th.text-left,
+.content-area td.text-left {
+  text-align: left;
+}
+
+.content-area th.text-center,
+.content-area td.text-center {
+  text-align: center;
+}
+
+.content-area th.text-right,
+.content-area td.text-right {
+  text-align: right;
+}
+
 /* Page Navigation */
 .page-navigation {
   padding: 2rem;

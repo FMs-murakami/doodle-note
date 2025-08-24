@@ -20,22 +20,35 @@ function convertImagePath(src, currentPagePath) {
     return src;
   }
   
+  // Clean up the source path - remove redundant './' and normalize
+  let cleanSrc = src.replace(/\/\.\//g, '/').replace(/^\.\//g, '');
+  
   // For relative paths, calculate the correct relative path from the output HTML location
   const currentDir = path.dirname(currentPagePath);
   const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
   
-  // If the image path starts with '../', it's already relative to the markdown file
-  // We need to adjust it for the HTML output location
+  // Handle paths that start with '../' - these are relative to the markdown file
   if (src.startsWith('../')) {
-    // Remove the '../' and recalculate from the HTML location
-    const cleanSrc = src.replace(/^\.\.\//, '');
-    const relativePath = currentDepth > 0 ? '../'.repeat(currentDepth) : './';
+    // For paths like '../docs/./sample01.png', we need to resolve them properly
+    // First, clean up the path
+    cleanSrc = src.replace(/\/\.\//g, '/').replace(/^\.\.\//g, '');
+    
+    // Calculate the relative path from the HTML output location to the root
+    const relativePath = currentDepth > 0 ? '../'.repeat(currentDepth) : '';
+    
+    // Return the cleaned path with proper relative prefix
     return relativePath + cleanSrc;
   }
   
   // If it's a simple relative path (no '../'), treat it as relative to the markdown file's directory
-  const relativePath = currentDepth > 0 ? '../'.repeat(currentDepth) : './';
-  return relativePath + currentDir + '/' + src;
+  if (currentDepth > 0) {
+    // For files in subdirectories, we need to go up to reach the root, then navigate to the image
+    const relativePath = '../'.repeat(currentDepth);
+    return relativePath + currentDir + '/' + cleanSrc;
+  } else {
+    // For files in the root directory
+    return currentDir + '/' + cleanSrc;
+  }
 }
 
 /**
@@ -159,6 +172,37 @@ async function convertMarkdownToHtml(markdownContent, currentPagePath = '') {
       return `<img src="${convertedSrc}"${altAttr}${titleAttr} loading="lazy">`;
     };
     
+    // Override the table renderer to handle alignment
+    renderer.table = function(header, body) {
+      return `<table>\n<thead>\n${header}</thead>\n<tbody>\n${body}</tbody>\n</table>\n`;
+    };
+    
+    renderer.tablerow = function(content) {
+      return `<tr>\n${content}</tr>\n`;
+    };
+    
+    renderer.tablecell = function(content, flags) {
+      const type = flags.header ? 'th' : 'td';
+      let alignClass = '';
+      
+      if (flags.align) {
+        switch (flags.align) {
+          case 'center':
+            alignClass = ' class="text-center"';
+            break;
+          case 'right':
+            alignClass = ' class="text-right"';
+            break;
+          case 'left':
+          default:
+            alignClass = ' class="text-left"';
+            break;
+        }
+      }
+      
+      return `<${type}${alignClass}>${content}</${type}>\n`;
+    };
+    
     // Convert markdown to HTML with custom renderer
     const htmlContent = marked(content, { renderer });
     return { html: htmlContent, frontmatter };
@@ -169,26 +213,13 @@ async function convertMarkdownToHtml(markdownContent, currentPagePath = '') {
 
 /**
  * Generate navigation HTML for sidebar
- * @param {Object} groupedPages - Pages grouped by category (not used anymore)
+ * @param {Object} config - Site configuration with hierarchical structure
  * @param {string} currentPath - Current page path for highlighting
  * @returns {string} Navigation HTML
  */
-function generateNavigation(groupedPages, currentPath) {
-  const { generateSidebar } = require('./sidebar');
-  
-  // Create a mock config object for the sidebar generator
-  const mockConfig = {
-    pages: []
-  };
-  
-  // Flatten grouped pages back to array format (for compatibility)
-  Object.keys(groupedPages).forEach(category => {
-    groupedPages[category].forEach(page => {
-      mockConfig.pages.push(page);
-    });
-  });
-  
-  return generateSidebar(mockConfig, currentPath);
+function generateNavigation(config, currentPath) {
+  const { generateEnhancedSidebar } = require('./sidebar');
+  return generateEnhancedSidebar(config, currentPath, true);
 }
 
 /**
@@ -205,7 +236,7 @@ function calculateRelativePath(pagePath) {
  * Convert a single markdown page to HTML
  * @param {Object} page - Page configuration
  * @param {Object} config - Site configuration
- * @param {Object} groupedPages - All pages grouped by category
+ * @param {Object} groupedPages - All pages grouped by category (legacy parameter)
  * @returns {Promise<string>} Complete HTML page
  */
 async function convertMarkdown(page, config, groupedPages) {
@@ -225,8 +256,8 @@ async function convertMarkdown(page, config, groupedPages) {
     // Load template
     const template = await loadTemplate();
     
-    // Generate navigation
-    const navigation = generateNavigation(groupedPages, page.path);
+    // Generate navigation using the full config
+    const navigation = generateNavigation(config, page.path);
     
     // Calculate relative path to root for this page
     const relativePath = calculateRelativePath(page.path);

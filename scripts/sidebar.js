@@ -58,7 +58,7 @@ function getPageUrl(page, currentPath = '') {
  * @returns {string} Navigation HTML
  */
 function generateSidebar(config, currentPage) {
-  let html = '<nav class="sidebar-nav" role="navigation" aria-label="ドキュメントナビゲーション">\n';
+  let html = '<nav class="sidebar-nav" role="navigation" aria-label="ドキュメントナビゲーション" id="navigation">\n';
   
   // Process each top-level item
   config.pages.forEach((item, index) => {
@@ -90,19 +90,17 @@ function generateSidebar(config, currentPage) {
  * @returns {string} Category HTML
  */
 function generateCategorySection(category, currentPage, level = 0) {
-  const categoryId = `category-${category.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${level}`;
+  const categoryId = category.category.toLowerCase().replace(/[^a-z0-9]/g, '-');
   const hasActiveChild = hasActivePage(category.pages, currentPage);
   const expandedClass = hasActiveChild ? ' expanded' : '';
   const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
   
-  let html = `  <div class="nav-category${expandedClass}${levelClass}">\n`;
-  html += '    <div class="nav-category-header">\n';
-  html += `      <button class="nav-category-toggle" onclick="toggleCategory('${categoryId}')" aria-expanded="${hasActiveChild}">\n`;
-  html += '        <span class="nav-category-icon">▶</span>\n';
-  html += `        <span class="nav-category-title">${category.category}</span>\n`;
-  html += '      </button>\n';
-  html += '    </div>\n';
-  html += `    <div class="nav-category-list" id="${categoryId}" role="list">\n`;
+  let html = `  <div class="nav-category${expandedClass}${levelClass}" data-category="${categoryId}">\n`;
+  html += `    <button class="nav-category-toggle" aria-expanded="${hasActiveChild}">\n`;
+  html += `      <h3 class="nav-category-title">${category.category}</h3>\n`;
+  html += '      <span class="nav-category-icon">▼</span>\n';
+  html += '    </button>\n';
+  html += '    <ul class="nav-category-list">\n';
   
   // Process pages in this category
   category.pages.forEach(item => {
@@ -113,16 +111,16 @@ function generateCategorySection(category, currentPage, level = 0) {
       const activeClass = isActive ? ' class="active"' : '';
       const ariaCurrent = isActive ? ' aria-current="page"' : '';
       
-      html += '      <div class="nav-item" role="listitem">\n';
+      html += '      <li>\n';
       html += `        <a href="${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
-      html += '      </div>\n';
+      html += '      </li>\n';
     } else if (item.category && item.pages) {
       // Nested category
       html += generateCategorySection(item, currentPage, level + 1);
     }
   });
   
-  html += '    </div>\n';
+  html += '    </ul>\n';
   html += '  </div>\n';
   
   return html;
