@@ -6,9 +6,8 @@ let siteConfig = null;
 // Initialize configuration loading
 async function loadSiteConfig() {
     try {
-        const response = await fetch('/doodle-note/config/config.yaml');
-        const text = await response.text();
-        siteConfig = yaml.load(text);
+        const response = await fetch('/doodle-note/config/config.json');
+        siteConfig = await response.json();
     } catch (error) {
         console.warn('Could not load config.json (generated from config.yaml), using fallback configuration');
         // Fallback configuration matching the server-side structure
