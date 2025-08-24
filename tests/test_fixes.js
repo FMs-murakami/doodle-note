@@ -133,14 +133,16 @@ function testConfigStructure() {
   console.log('Testing configuration structure...');
   
   try {
-    const configPath = path.join(__dirname, '..', 'config', 'config.json');
+    const configPath = path.join(__dirname, '..', 'config', 'config.yaml');
     
     if (!fs.existsSync(configPath)) {
       console.log('  ❌ Config file not found');
       return false;
     }
     
-    const config = fs.readJsonSync(configPath);
+    const yaml = require('js-yaml');
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const config = yaml.load(configContent);
     
     const checks = [
       { test: config.site && config.site.title, desc: 'Has site title' },

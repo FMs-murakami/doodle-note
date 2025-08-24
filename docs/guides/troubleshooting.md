@@ -28,34 +28,30 @@ docs/setup/environment.md
 ```
 
 **解決方法:**
-1. `config/config.json` でパスを確認
+1. `config/config.yaml` でパスを確認
 2. 実際のファイルが存在するか確認
 3. ファイル名のスペルチェック
 
-**原因2: config.json の構文エラー**
-```json
-// 問題のある例（末尾のカンマ）
-{
-  "site": {
-    "title": "サイトタイトル",
-  }
-}
+**原因2: config.yaml の構文エラー**
+```yaml
+# 問題のある例（インデントエラー）
+site:
+  title: "サイトタイトル"
+ description: "説明"  # インデントが間違っている
 
-// 正しい例
-{
-  "site": {
-    "title": "サイトタイトル"
-  }
-}
+# 正しい例
+site:
+  title: "サイトタイトル"
+  description: "説明"
 ```
 
 **解決方法:**
 ```bash
-# JSON構文チェック
+# YAML構文チェック
 npm run validate-config
 
 # または手動でチェック
-node -e "console.log(JSON.parse(require('fs').readFileSync('config/config.json', 'utf8')))"
+node -e "const yaml = require('js-yaml'); console.log(yaml.load(require('fs').readFileSync('config/config.yaml', 'utf8')))"
 ```
 
 ### 2. ビルドが失敗する
@@ -312,13 +308,10 @@ permissions:
 ```
 
 #### ベースURLの設定
-```json
-// config.json
-{
-  "site": {
-    "baseUrl": "https://username.github.io/repository-name/"
-  }
-}
+```yaml
+# config.yaml
+site:
+  baseUrl: "https://username.github.io/repository-name/"
 ```
 
 ## ログとモニタリング

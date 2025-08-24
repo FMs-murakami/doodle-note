@@ -7,9 +7,27 @@
 
 const fs = require('fs-extra');
 const path = require('path');
+const yaml = require('js-yaml');
 const { loadConfig, groupPagesByCategory, getCategories, flattenPages } = require('./config');
 const { convertMarkdown } = require('./markdown');
 const outputDir = process.env.OUTPUT_DIR || 'dist';
+
+/**
+ * Generate config.json from config.yaml for client-side consumption
+ */
+async function generateConfigJson(config) {
+  console.log('⚙️  Generating config.json from config.yaml...');
+  
+  // Ensure config directory exists in output
+  const configDir = path.join(outputDir, 'config');
+  await fs.ensureDir(configDir);
+  
+  // Write config.json with the loaded configuration
+  const configJsonPath = path.join(configDir, 'config.json');
+  await fs.writeJson(configJsonPath, config, { spaces: 2 });
+  
+  console.log('✅ Generated config.json for client-side consumption');
+}
 
 /**
  * Copy static files to dist directory
@@ -27,10 +45,8 @@ async function copyStaticFiles() {
     await fs.copy('docs', path.join(outputDir, 'docs'));
   }
   
-  // Copy config directory (for client-side config loading)
-  if (await fs.pathExists('config')) {
-    await fs.copy('config', path.join(outputDir, 'config'));
-  }
+  // Note: config directory is handled separately by generateConfigJson()
+  // to convert YAML to JSON for client-side consumption
   
   // Copy favicon if it exists
   if (await fs.pathExists('favicon.ico')) {
@@ -293,13 +309,16 @@ async function build() {
     console.log('⚙️  Loading configuration...');
     const config = await loadConfig();
     
-    // 3. Flatten hierarchical pages structure
+    // 3. Generate config.json for client-side consumption
+    await generateConfigJson(config);
+    
+    // 4. Flatten hierarchical pages structure
     const flatPages = flattenPages(config.pages);
     
-    // 4. Group pages by category
+    // 5. Group pages by category
     const groupedPages = groupPagesByCategory(config.pages);
     
-    // 5. Process each page
+    // 6. Process each page
     console.log('📝 Processing markdown files...');
     for (const page of flatPages) {
       try {
@@ -316,13 +335,13 @@ async function build() {
       }
     }
     
-    // 6. Copy static files
+    // 7. Copy static files
     await copyStaticFiles();
     
-    // 7. Generate index page
+    // 8. Generate index page
     await generateIndex(config);
     
-    // 8. Generate category index pages
+    // 9. Generate category index pages
     await generateCategoryIndexes(config);
     
     console.log('🎉 Build completed successfully!');
@@ -341,4 +360,4 @@ if (require.main === module) {
   build();
 }
 
-module.exports = { build, copyStaticFiles, generateIndex, generateCategoryIndexes };
+module.exports = { build, copyStaticFiles, generateIndex, generateCategoryIndexes, generateConfigJson };
