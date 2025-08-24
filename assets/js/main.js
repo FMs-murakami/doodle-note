@@ -9,7 +9,7 @@ async function loadSiteConfig() {
         const response = await fetch('config/config.json');
         siteConfig = await response.json();
     } catch (error) {
-        console.warn('Could not load config.json, using fallback configuration');
+        console.warn('Could not load config.json (generated from config.yaml), using fallback configuration');
         // Fallback configuration matching the server-side structure
         siteConfig = {
             "site": {

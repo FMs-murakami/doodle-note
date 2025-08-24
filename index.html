@@ -97,12 +97,10 @@ category: カテゴリ名
 ここにコンテンツを記述します。</code></pre>
                                 
                                 <h3>3. 設定ファイルの更新</h3>
-                                <p><code>config/config.json</code> ファイルの <code>pages</code> 配列に新しいページを追加します：</p>
-                                <pre><code>{
-  "title": "ページタイトル",
-  "path": "docs/category/filename.md",
-  "category": "カテゴリ名"
-}</code></pre>
+                                <p><code>config/config.yaml</code> ファイルの <code>pages</code> 配列に新しいページを追加します：</p>
+                                <pre><code>- title: "ページタイトル"
+  path: "docs/category/filename.md"
+  category: "カテゴリ名"</code></pre>
                                 
                                 <h3>4. ビルドとデプロイ</h3>
                                 <p>変更をコミットしてプッシュすると、GitHub Actionsが自動的にサイトをビルド・デプロイします：</p>

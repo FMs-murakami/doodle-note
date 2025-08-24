@@ -66,23 +66,24 @@ async function runTests() {
   let allTestsPassed = true;
   
   try {
-    // Test 1: Verify config.json exists and is valid
-    console.log('1️⃣ Testing config.json loading...');
+    // Test 1: Verify config.yaml exists and is valid
+    console.log('1️⃣ Testing config.yaml loading...');
     
-    const configPath = path.join(__dirname, 'config', 'config.json');
+    const configPath = path.join(__dirname, 'config', 'config.yaml');
     if (!fs.existsSync(configPath)) {
-      throw new Error('config.json file not found');
+      throw new Error('config.yaml file not found');
     }
     
+    const yaml = require('js-yaml');
     const configContent = fs.readFileSync(configPath, 'utf8');
-    const actualConfig = JSON.parse(configContent);
+    const actualConfig = yaml.load(configContent);
     
     // Verify structure
     if (!actualConfig.site || !actualConfig.pages) {
-      throw new Error('config.json missing required structure');
+      throw new Error('config.yaml missing required structure');
     }
     
-    console.log('   ✅ config.json exists and has valid structure');
+    console.log('   ✅ config.yaml exists and has valid structure');
     console.log(`   ✅ Site title: ${actualConfig.site.title}`);
     console.log(`   ✅ Pages count: ${actualConfig.pages.length}`);
     
@@ -171,7 +172,7 @@ async function runTests() {
       
       // Check for config loading in main.js
       if (mainJsContent.includes('loadSiteConfig') && mainJsContent.includes('config.json')) {
-        console.log('   ✅ main.js contains config.json loading');
+        console.log('   ✅ main.js contains config.json loading (generated from config.yaml)');
       } else {
         console.log('   ❌ main.js missing config.json loading');
         allTestsPassed = false;
@@ -204,7 +205,7 @@ async function runTests() {
       console.log('🎉 All tests passed! Implementation is working correctly.');
       console.log('\n✅ Requirements fulfilled:');
       console.log('   • Sidebar uses details/summary tags for collapsible functionality');
-      console.log('   • main.js loads config.json content into siteConfig');
+      console.log('   • main.js loads config.json content (generated from config.yaml) into siteConfig');
       console.log('   • Server-side and client-side rendering are consistent');
       console.log('   • All existing functionality is preserved');
     } else {
