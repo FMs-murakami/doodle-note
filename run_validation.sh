@@ -4,7 +4,7 @@ echo "🔍 Running Phase 2 Implementation Validation"
 echo "=============================================="
 
 # Run the validation script
-node validation_check.js
+node test/validation_check.js
 
 echo ""
 echo "🧪 Running existing test suite"

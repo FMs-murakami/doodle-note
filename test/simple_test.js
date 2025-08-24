@@ -1,23 +1,26 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
+const path = require('path');
 
 try {
   console.log('Running build...');
-  execSync('node scripts/build.js', { stdio: 'inherit', cwd: '/workspace' });
+  const rootDir = path.join(__dirname, '..');
+  execSync('node scripts/build.js', { stdio: 'inherit', cwd: rootDir });
   
   console.log('\nChecking results...');
   
-  if (fs.existsSync('/workspace/dist')) {
+  const distPath = path.join(rootDir, 'dist');
+  if (fs.existsSync(distPath)) {
     console.log('✅ dist directory created');
     
-    const files = fs.readdirSync('/workspace/dist', { recursive: true });
+    const files = fs.readdirSync(distPath, { recursive: true });
     console.log('Files in dist:', files);
     
-    if (fs.existsSync('/workspace/dist/index.html')) {
+    if (fs.existsSync(path.join(distPath, 'index.html'))) {
       console.log('✅ index.html exists');
     }
     
-    if (fs.existsSync('/workspace/dist/docs/README.html')) {
+    if (fs.existsSync(path.join(distPath, 'docs/README.html'))) {
       console.log('✅ README.html converted');
     }
   } else {

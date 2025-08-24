@@ -7,7 +7,7 @@ console.log('🔍 Quick Phase 3 Module Test\n');
 
 // Test config module
 try {
-    const config = require('./scripts/config');
+    const config = require('../scripts/config');
     console.log('✅ config.js module loads');
     console.log('   Functions:', Object.keys(config));
 } catch (error) {
@@ -16,7 +16,7 @@ try {
 
 // Test markdown module  
 try {
-    const markdown = require('./scripts/markdown');
+    const markdown = require('../scripts/markdown');
     console.log('✅ markdown.js module loads');
     console.log('   Functions:', Object.keys(markdown));
 } catch (error) {
@@ -25,7 +25,7 @@ try {
 
 // Test build module
 try {
-    const build = require('./scripts/build');
+    const build = require('../scripts/build');
     console.log('✅ build.js module loads');
     console.log('   Functions:', Object.keys(build));
 } catch (error) {
@@ -34,7 +34,7 @@ try {
 
 // Test config loading
 try {
-    const { loadConfig } = require('./scripts/config');
+    const { loadConfig } = require('../scripts/config');
     loadConfig().then(config => {
         console.log('✅ Config loaded successfully');
         console.log('   Site title:', config.site.title);

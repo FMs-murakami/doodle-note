@@ -15,7 +15,8 @@ let validationWarnings = [];
 
 // Helper function to check file existence
 function checkFileExists(filePath, description) {
-    if (fs.existsSync(filePath)) {
+    const fullPath = path.join(__dirname, '..', filePath);
+    if (fs.existsSync(fullPath)) {
         console.log(`✅ ${description}: ${filePath}`);
         return true;
     } else {
@@ -28,7 +29,8 @@ function checkFileExists(filePath, description) {
 // Helper function to validate JSON structure
 function validateJSON(filePath, requiredFields) {
     try {
-        const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+        const fullPath = path.join(__dirname, '..', filePath);
+        const content = JSON.parse(fs.readFileSync(fullPath, 'utf8'));
         let isValid = true;
         
         for (const field of requiredFields) {
@@ -54,7 +56,8 @@ function validateJSON(filePath, requiredFields) {
 // Helper function to validate YAML content
 function validateYAMLContent(filePath, requiredStrings) {
     try {
-        const content = fs.readFileSync(filePath, 'utf8');
+        const fullPath = path.join(__dirname, '..', filePath);
+        const content = fs.readFileSync(fullPath, 'utf8');
         let isValid = true;
         
         for (const requiredString of requiredStrings) {
@@ -194,7 +197,8 @@ const buildScriptExists = checkFileExists('scripts/build.js', 'Build script');
 const devScriptExists = checkFileExists('scripts/dev.js', 'Development script');
 
 if (buildScriptExists) {
-    const buildContent = fs.readFileSync('scripts/build.js', 'utf8');
+    const fullPath = path.join(__dirname, '..', 'scripts/build.js');
+    const buildContent = fs.readFileSync(fullPath, 'utf8');
     const requiredBuildContent = ['marked', 'highlight.js', 'fs-extra', 'dist'];
     
     for (const required of requiredBuildContent) {
