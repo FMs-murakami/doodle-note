@@ -7,7 +7,7 @@
 
 const fs = require('fs-extra');
 const path = require('path');
-const { loadConfig, groupPagesByCategory, getCategories } = require('./config');
+const { loadConfig, groupPagesByCategory, getCategories, flattenPages } = require('./config');
 const { convertMarkdown } = require('./markdown');
 const outputDir = process.env.OUTPUT_DIR || 'dist';
 
@@ -291,12 +291,15 @@ async function build() {
     console.log('⚙️  Loading configuration...');
     const config = await loadConfig();
     
-    // 3. Group pages by category
+    // 3. Flatten hierarchical pages structure
+    const flatPages = flattenPages(config.pages);
+    
+    // 4. Group pages by category
     const groupedPages = groupPagesByCategory(config.pages);
     
-    // 4. Process each page
+    // 5. Process each page
     console.log('📝 Processing markdown files...');
-    for (const page of config.pages) {
+    for (const page of flatPages) {
       try {
         const htmlContent = await convertMarkdown(page, config, groupedPages);
         
@@ -311,18 +314,18 @@ async function build() {
       }
     }
     
-    // 5. Copy static files
+    // 6. Copy static files
     await copyStaticFiles();
     
-    // 6. Generate index page
+    // 7. Generate index page
     await generateIndex(config);
     
-    // 7. Generate category index pages
+    // 8. Generate category index pages
     await generateCategoryIndexes(config);
     
     console.log('🎉 Build completed successfully!');
     console.log('📂 Output directory: ./dist');
-    console.log(`📊 Processed ${config.pages.length} pages`);
+    console.log(`📊 Processed ${flatPages.length} pages`);
     
   } catch (error) {
     console.error('❌ Build failed:', error.message);

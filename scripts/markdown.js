@@ -9,6 +9,36 @@ const { marked } = require('marked');
 const hljs = require('highlight.js');
 
 /**
+ * Convert image path to proper relative path
+ * @param {string} src - Original image src from markdown
+ * @param {string} currentPagePath - Path of the current page being processed
+ * @returns {string} Converted src for HTML output
+ */
+function convertImagePath(src, currentPagePath) {
+  // If it's an absolute URL or data URL, return as-is
+  if (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('data:') || src.startsWith('/')) {
+    return src;
+  }
+  
+  // For relative paths, calculate the correct relative path from the output HTML location
+  const currentDir = path.dirname(currentPagePath);
+  const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
+  
+  // If the image path starts with '../', it's already relative to the markdown file
+  // We need to adjust it for the HTML output location
+  if (src.startsWith('../')) {
+    // Remove the '../' and recalculate from the HTML location
+    const cleanSrc = src.replace(/^\.\.\//, '');
+    const relativePath = currentDepth > 0 ? '../'.repeat(currentDepth) : './';
+    return relativePath + cleanSrc;
+  }
+  
+  // If it's a simple relative path (no '../'), treat it as relative to the markdown file's directory
+  const relativePath = currentDepth > 0 ? '../'.repeat(currentDepth) : './';
+  return relativePath + currentDir + '/' + src;
+}
+
+/**
  * Convert markdown link to HTML link
  * @param {string} href - Original href from markdown link
  * @param {string} currentPagePath - Path of the current page being processed
@@ -111,7 +141,7 @@ async function convertMarkdownToHtml(markdownContent, currentPagePath = '') {
   const { frontmatter, content } = extractFrontmatter(markdownContent);
   
   try {
-    // Create a custom renderer for link processing
+    // Create a custom renderer for link and image processing
     const renderer = new marked.Renderer();
     
     // Override the link renderer to convert .md links to .html
@@ -119,6 +149,14 @@ async function convertMarkdownToHtml(markdownContent, currentPagePath = '') {
       const convertedHref = convertMarkdownLinkToHtml(href, currentPagePath);
       const titleAttr = title ? ` title="${title}"` : '';
       return `<a href="${convertedHref}"${titleAttr}>${text}</a>`;
+    };
+    
+    // Override the image renderer to handle relative paths correctly
+    renderer.image = function(src, title, alt) {
+      const convertedSrc = convertImagePath(src, currentPagePath);
+      const titleAttr = title ? ` title="${title}"` : '';
+      const altAttr = alt ? ` alt="${alt}"` : ' alt=""';
+      return `<img src="${convertedSrc}"${altAttr}${titleAttr} loading="lazy">`;
     };
     
     // Convert markdown to HTML with custom renderer

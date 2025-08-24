@@ -498,6 +498,17 @@ window.toggleSidebar = function() {
   }
 };
 
+// Global function for category toggling (called from HTML onclick)
+window.toggleCategory = function(categoryId) {
+  if (window.sidebarManager) {
+    const category = document.getElementById(categoryId);
+    const toggle = category?.parentElement.querySelector('.nav-category-toggle');
+    if (toggle) {
+      window.sidebarManager.toggleCategory(toggle);
+    }
+  }
+};
+
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
   window.sidebarManager = new SidebarManager();

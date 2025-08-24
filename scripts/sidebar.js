@@ -52,7 +52,7 @@ function getPageUrl(page, currentPath = '') {
 }
 
 /**
- * Generate enhanced sidebar navigation HTML without categories
+ * Generate hierarchical sidebar navigation HTML with collapsible categories
  * @param {Object} config - Site configuration
  * @param {string} currentPage - Current page path for highlighting
  * @returns {string} Navigation HTML
@@ -60,31 +60,90 @@ function getPageUrl(page, currentPath = '') {
 function generateSidebar(config, currentPage) {
   let html = '<nav class="sidebar-nav" role="navigation" aria-label="ドキュメントナビゲーション">\n';
   
-  // Sort pages by title
-  const sortedPages = config.pages.slice().sort((a, b) => a.title.localeCompare(b.title, 'ja'));
-  
-  html += '  <div class="nav-category expanded">\n';
-  html += '    <div class="nav-category-header">\n';
-  html += '      <span class="nav-category-title">ドキュメント一覧</span>\n';
-  html += '    </div>\n';
-  html += '    <ul class="nav-category-list" role="list">\n';
-  
-  sortedPages.forEach(page => {
-    const isActive = page.path === currentPage;
-    const pageUrl = getPageUrl(page, currentPage);
-    const activeClass = isActive ? ' class="active"' : '';
-    const ariaCurrent = isActive ? ' aria-current="page"' : '';
-    
-    html += '      <li role="listitem">\n';
-    html += `        <a href="${pageUrl}"${activeClass}${ariaCurrent}>${page.title}</a>\n`;
-    html += '      </li>\n';
+  // Process each top-level item
+  config.pages.forEach((item, index) => {
+    if (item.path && item.title) {
+      // This is a top-level page (no category)
+      const isActive = item.path === currentPage;
+      const pageUrl = getPageUrl(item, currentPage);
+      const activeClass = isActive ? ' class="active"' : '';
+      const ariaCurrent = isActive ? ' aria-current="page"' : '';
+      
+      html += '  <div class="nav-item">\n';
+      html += `    <a href="${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
+      html += '  </div>\n';
+    } else if (item.category && item.pages) {
+      // This is a category with pages
+      html += generateCategorySection(item, currentPage, 0);
+    }
   });
   
-  html += '    </ul>\n';
-  html += '  </div>\n';
   html += '</nav>\n';
+  return html;
+}
+
+/**
+ * Generate a category section with collapsible functionality
+ * @param {Object} category - Category object with pages
+ * @param {string} currentPage - Current page path
+ * @param {number} level - Nesting level (0 = top level)
+ * @returns {string} Category HTML
+ */
+function generateCategorySection(category, currentPage, level = 0) {
+  const categoryId = `category-${category.category.toLowerCase().replace(/[^a-z0-9]/g, '-')}-${level}`;
+  const hasActiveChild = hasActivePage(category.pages, currentPage);
+  const expandedClass = hasActiveChild ? ' expanded' : '';
+  const levelClass = level > 0 ? ` nav-category-level-${level}` : '';
+  
+  let html = `  <div class="nav-category${expandedClass}${levelClass}">\n`;
+  html += '    <div class="nav-category-header">\n';
+  html += `      <button class="nav-category-toggle" onclick="toggleCategory('${categoryId}')" aria-expanded="${hasActiveChild}">\n`;
+  html += '        <span class="nav-category-icon">▶</span>\n';
+  html += `        <span class="nav-category-title">${category.category}</span>\n`;
+  html += '      </button>\n';
+  html += '    </div>\n';
+  html += `    <div class="nav-category-list" id="${categoryId}" role="list">\n`;
+  
+  // Process pages in this category
+  category.pages.forEach(item => {
+    if (item.path && item.title) {
+      // Regular page
+      const isActive = item.path === currentPage;
+      const pageUrl = getPageUrl(item, currentPage);
+      const activeClass = isActive ? ' class="active"' : '';
+      const ariaCurrent = isActive ? ' aria-current="page"' : '';
+      
+      html += '      <div class="nav-item" role="listitem">\n';
+      html += `        <a href="${pageUrl}"${activeClass}${ariaCurrent}>${item.title}</a>\n`;
+      html += '      </div>\n';
+    } else if (item.category && item.pages) {
+      // Nested category
+      html += generateCategorySection(item, currentPage, level + 1);
+    }
+  });
+  
+  html += '    </div>\n';
+  html += '  </div>\n';
   
   return html;
+}
+
+/**
+ * Check if a category or its subcategories contain the active page
+ * @param {Array} pages - Array of pages to check
+ * @param {string} currentPage - Current page path
+ * @returns {boolean} True if contains active page
+ */
+function hasActivePage(pages, currentPage) {
+  return pages.some(item => {
+    if (item.path === currentPage) {
+      return true;
+    }
+    if (item.category && item.pages) {
+      return hasActivePage(item.pages, currentPage);
+    }
+    return false;
+  });
 }
 
 /**
@@ -133,24 +192,64 @@ function generateBreadcrumb(page, config) {
 }
 
 /**
- * Generate page statistics for dashboard
+ * Generate page statistics for dashboard (updated for hierarchical structure)
  * @param {Object} config - Site configuration
  * @returns {Object} Page statistics
  */
 function generateCategoryStats(config) {
+  const { flattenPages } = require('./config');
+  const flatPages = flattenPages(config.pages);
+  
   const stats = {
-    totalPages: config.pages.length,
-    totalCategories: 1, // No categories, just one group
-    categories: {
-      'すべて': {
-        count: config.pages.length,
-        pages: config.pages.map(page => ({
-          title: page.title,
-          path: page.path
-        }))
-      }
-    }
+    totalPages: flatPages.length,
+    totalCategories: 0,
+    categories: {}
   };
+  
+  // Count categories and organize pages
+  function processItem(item, parentCategory = null) {
+    if (item.category && item.pages) {
+      const categoryName = parentCategory ? `${parentCategory} > ${item.category}` : item.category;
+      stats.totalCategories++;
+      
+      if (!stats.categories[categoryName]) {
+        stats.categories[categoryName] = {
+          count: 0,
+          pages: []
+        };
+      }
+      
+      // Process pages in this category
+      item.pages.forEach(subItem => {
+        if (subItem.path && subItem.title) {
+          stats.categories[categoryName].count++;
+          stats.categories[categoryName].pages.push({
+            title: subItem.title,
+            path: subItem.path
+          });
+        } else if (subItem.category && subItem.pages) {
+          processItem(subItem, categoryName);
+        }
+      });
+    } else if (item.path && item.title && !parentCategory) {
+      // Top-level pages without category
+      if (!stats.categories['その他']) {
+        stats.categories['その他'] = {
+          count: 0,
+          pages: []
+        };
+        stats.totalCategories++;
+      }
+      
+      stats.categories['その他'].count++;
+      stats.categories['その他'].pages.push({
+        title: item.title,
+        path: item.path
+      });
+    }
+  }
+  
+  config.pages.forEach(item => processItem(item));
   
   return stats;
 }
@@ -207,13 +306,14 @@ function generateTableOfContents(htmlContent) {
 }
 
 /**
- * Generate next/previous navigation
+ * Generate next/previous navigation (updated for hierarchical structure)
  * @param {Object} currentPage - Current page object
  * @param {Object} config - Site configuration
  * @returns {Object} Navigation links
  */
 function generatePageNavigation(currentPage, config) {
-  const allPages = config.pages;
+  const { flattenPages } = require('./config');
+  const allPages = flattenPages(config.pages);
   const currentIndex = allPages.findIndex(page => page.path === currentPage.path);
   
   const navigation = {

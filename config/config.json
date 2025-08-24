@@ -10,44 +10,64 @@
       "title": "ドキュメント一覧"
     },
     {
-      "path": "docs/setup/environment.md",
-      "title": "開発環境セットアップ"
+      "category": "開発関連",
+      "pages": [
+        {
+          "path": "docs/setup/environment.md",
+          "title": "開発環境セットアップ"
+        },
+        {
+          "path": "docs/setup/deployment.md",
+          "title": "デプロイメント手順"
+        },
+        {
+          "path": "docs/setup.md",
+          "title": "環境セットアップ手順"
+        },
+        {
+          "category": "sub",
+          "pages": [
+            {
+              "path": "docs/setup/windows.md",
+              "title": "Windows環境構築"
+            },
+            {
+              "path": "docs/setup/macos.md",
+              "title": "macOS環境構築"
+            }
+          ]
+        }
+      ]
     },
     {
-      "path": "docs/setup/deployment.md",
-      "title": "デプロイメント手順"
+      "category": "API",
+      "pages": [
+        {
+          "path": "docs/api/authentication.md",
+          "title": "API認証仕様"
+        },
+        {
+          "path": "docs/api/endpoints.md",
+          "title": "APIエンドポイント仕様"
+        },
+        {
+          "path": "docs/api-spec.md",
+          "title": "API仕様書"
+        }
+      ]
     },
     {
-      "path": "docs/setup.md",
-      "title": "環境セットアップ手順"
-    },
-    {
-      "path": "docs/setup/windows.md",
-      "title": "Windows環境構築"
-    },
-    {
-      "path": "docs/setup/macos.md",
-      "title": "macOS環境構築"
-    },
-    {
-      "path": "docs/api/authentication.md",
-      "title": "API認証仕様"
-    },
-    {
-      "path": "docs/api/endpoints.md",
-      "title": "APIエンドポイント仕様"
-    },
-    {
-      "path": "docs/api-spec.md",
-      "title": "API仕様書"
-    },
-    {
-      "path": "docs/guides/troubleshooting.md",
-      "title": "トラブルシューティングガイド"
-    },
-    {
-      "path": "docs/guides/best-practices.md",
-      "title": "ベストプラクティス"
+      "category": "ガイド",
+      "pages": [
+        {
+          "path": "docs/guides/troubleshooting.md",
+          "title": "トラブルシューティングガイド"
+        },
+        {
+          "path": "docs/guides/best-practices.md",
+          "title": "ベストプラクティス"
+        }
+      ]
     }
   ]
 }
