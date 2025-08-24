@@ -276,10 +276,14 @@ async function testBuildProcess() {
 async function runTests() {
   console.log('🚀 Running comprehensive tests...\n');
   
+  // Import enhanced breadcrumb tests
+  const { testEnhancedBreadcrumbs } = require('./test_enhanced_breadcrumbs');
+  
   const results = {
     urlGeneration: testUrlGeneration(),
     breadcrumbGeneration: testBreadcrumbGeneration(),
     markdownLinkConversion: await testMarkdownLinkConversion(),
+    enhancedBreadcrumbs: await testEnhancedBreadcrumbs(),
     buildProcess: await testBuildProcess()
   };
   
@@ -289,6 +293,7 @@ async function runTests() {
   console.log(`  URL Generation: ${results.urlGeneration ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`  Breadcrumb Generation: ${results.breadcrumbGeneration ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`  Markdown Link Conversion: ${results.markdownLinkConversion ? '✅ PASS' : '❌ FAIL'}`);
+  console.log(`  Enhanced Breadcrumbs: ${results.enhancedBreadcrumbs ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`  Build Process: ${results.buildProcess ? '✅ PASS' : '❌ FAIL'}`);
   console.log(`\n${allPassed ? '🎉 All tests passed!' : '💥 Some tests failed!'}`);
   

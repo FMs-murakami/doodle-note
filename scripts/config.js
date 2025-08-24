@@ -216,6 +216,95 @@ function findPageByPath(pages, filePath) {
   return flatPages.find(page => page.path === filePath) || null;
 }
 
+/**
+ * Find the hierarchical category path for a given page
+ * @param {Array} pages - Array of page configurations (hierarchical)
+ * @param {string} filePath - File path to search for
+ * @returns {Array} Array of category objects representing the path from root to page
+ */
+function findCategoryPath(pages, filePath) {
+  const path = [];
+  
+  function searchInPages(pageArray, currentPath = []) {
+    for (const item of pageArray) {
+      if (item.category && item.pages) {
+        // This is a category
+        const newPath = [...currentPath, { 
+          category: item.category, 
+          type: 'category',
+          pages: item.pages 
+        }];
+        
+        // Check if the page is in this category
+        const result = searchInPages(item.pages, newPath);
+        if (result) {
+          return result;
+        }
+      } else if (item.path && item.title && item.path === filePath) {
+        // Found the page
+        return [...currentPath, { 
+          title: item.title, 
+          path: item.path, 
+          type: 'page' 
+        }];
+      }
+    }
+    return null;
+  }
+  
+  return searchInPages(pages) || [];
+}
+
+/**
+ * Get all pages and subcategories within a specific category path
+ * @param {Array} pages - Array of page configurations (hierarchical)
+ * @param {Array} categoryPath - Array of category names representing the path
+ * @returns {Object} Object containing direct pages and subcategories
+ */
+function getCategoryContents(pages, categoryPath) {
+  if (categoryPath.length === 0) {
+    // Root level
+    return extractDirectContents(pages);
+  }
+  
+  // Navigate to the target category
+  let currentLevel = pages;
+  for (const categoryName of categoryPath) {
+    const category = currentLevel.find(item => 
+      item.category && item.category === categoryName
+    );
+    if (!category) {
+      return { pages: [], subcategories: [] };
+    }
+    currentLevel = category.pages;
+  }
+  
+  return extractDirectContents(currentLevel);
+}
+
+/**
+ * Extract direct pages and subcategories from a pages array
+ * @param {Array} pages - Array of page configurations
+ * @returns {Object} Object containing direct pages and subcategories
+ */
+function extractDirectContents(pages) {
+  const directPages = [];
+  const subcategories = [];
+  
+  for (const item of pages) {
+    if (item.category && item.pages) {
+      subcategories.push({
+        category: item.category,
+        pageCount: flattenPages([item]).length
+      });
+    } else if (item.path && item.title) {
+      directPages.push(item);
+    }
+  }
+  
+  return { pages: directPages, subcategories };
+}
+
 module.exports = {
   loadConfig,
   validateConfig,
@@ -224,5 +313,8 @@ module.exports = {
   getCategories,
   findPageByPath,
   flattenPages,
-  validatePagesArray
+  validatePagesArray,
+  findCategoryPath,
+  getCategoryContents,
+  extractDirectContents
 };
