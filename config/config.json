@@ -7,7 +7,7 @@
   "pages": [
     {
       "path": "docs/README.md",
-      "title": "ドキュメント一覧"
+      "title": "README"
     },
     {
       "category": "開発関連",
