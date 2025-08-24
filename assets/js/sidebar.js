@@ -30,6 +30,7 @@ class SidebarManager {
     this.initializeSearch();
     this.initializeCategoryToggles();
     this.handleInitialState();
+    this.highlightCurrentPage();
     
     console.log('Sidebar initialized');
   }
@@ -480,6 +481,59 @@ class SidebarManager {
     setTimeout(() => {
       document.body.removeChild(announcement);
     }, 1000);
+  }
+  
+  /**
+   * Highlight the current page in the sidebar navigation
+   */
+  highlightCurrentPage() {
+    const currentPath = window.location.pathname;
+    const currentPage = currentPath.split('/').pop() || 'index.html';
+    
+    // Remove any existing active classes
+    const existingActive = this.sidebar.querySelectorAll('.active');
+    existingActive.forEach(link => link.classList.remove('active'));
+    
+    // Find and highlight the current page
+    const navLinks = this.sidebar.querySelectorAll('a[href]');
+    navLinks.forEach(link => {
+      const href = link.getAttribute('href');
+      const linkPage = href.split('/').pop();
+      
+      // Check for exact match or if this is the index page
+      if (linkPage === currentPage || 
+          (currentPage === 'index.html' && (href === 'index.html' || href === './' || href === '/'))) {
+        link.classList.add('active');
+        link.setAttribute('aria-current', 'page');
+        
+        // Expand parent categories if the active link is inside a collapsed category
+        this.expandParentCategories(link);
+      }
+    });
+  }
+  
+  /**
+   * Expand parent categories for the given element
+   * @param {HTMLElement} element - Element to find parents for
+   */
+  expandParentCategories(element) {
+    let parent = element.closest('.nav-category');
+    while (parent) {
+      if (!parent.open) {
+        parent.open = true;
+        
+        // Update session storage
+        const categoryId = parent.getAttribute('data-category');
+        if (categoryId) {
+          const expandedCategories = this.getExpandedCategories();
+          expandedCategories.add(categoryId);
+          this.saveExpandedCategories(expandedCategories);
+        }
+      }
+      
+      // Look for parent categories
+      parent = parent.parentElement.closest('.nav-category');
+    }
   }
 }
 

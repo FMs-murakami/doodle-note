@@ -387,6 +387,21 @@ body {
   transform: rotate(0deg);
 }
 
+/* Ensure all category levels have consistent triangle behavior */
+.nav-category-level-1 .nav-category-icon,
+.nav-category-level-2 .nav-category-icon {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  transition: transform var(--transition-normal);
+  transform: rotate(-90deg);
+  flex-shrink: 0;
+}
+
+.nav-category-level-1[open] .nav-category-icon,
+.nav-category-level-2[open] .nav-category-icon {
+  transform: rotate(0deg);
+}
+
 .nav-category-list {
   list-style: none;
   display: flex;
@@ -448,6 +463,39 @@ body {
   background-color: var(--primary-color);
   color: var(--text-inverse);
   font-weight: 500;
+  position: relative;
+}
+
+.nav-category-list a.active::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 0 2px 2px 0;
+}
+
+/* Also apply active styling to nav-item links */
+.nav-item a.active {
+  background-color: var(--primary-color);
+  color: var(--text-inverse);
+  font-weight: 500;
+  position: relative;
+}
+
+.nav-item a.active::before {
+  content: '';
+  position: absolute;
+  left: -0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 100%;
+  background-color: var(--accent-color);
+  border-radius: 0 2px 2px 0;
 }
 
 /* Breadcrumb */

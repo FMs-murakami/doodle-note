@@ -20,10 +20,14 @@ function getPageUrl(page, currentPath = '') {
     return htmlPath;
   }
   
+  // Normalize paths to prevent duplication issues
+  const normalizedCurrentPath = currentPath.replace(/\\/g, '/');
+  const normalizedHtmlPath = htmlPath.replace(/\\/g, '/');
+  
   // Calculate relative path from current page to target page
-  const currentDir = path.dirname(currentPath);
-  const targetDir = path.dirname(htmlPath);
-  const targetFile = path.basename(htmlPath);
+  const currentDir = path.dirname(normalizedCurrentPath);
+  const targetDir = path.dirname(normalizedHtmlPath);
+  const targetFile = path.basename(normalizedHtmlPath);
   
   // If both pages are in the same directory
   if (currentDir === targetDir) {
@@ -32,7 +36,6 @@ function getPageUrl(page, currentPath = '') {
   
   // Calculate how many levels up we need to go from current directory
   const currentDepth = currentDir === '.' ? 0 : currentDir.split('/').length;
-  const targetDepth = targetDir === '.' ? 0 : targetDir.split('/').length;
   
   // Build relative path
   let relativePath = '';
@@ -47,6 +50,9 @@ function getPageUrl(page, currentPath = '') {
     relativePath += targetDir + '/';
   }
   relativePath += targetFile;
+  
+  // Clean up any double slashes or redundant path segments
+  relativePath = relativePath.replace(/\/+/g, '/').replace(/\/\.\//g, '/');
   
   return relativePath;
 }
